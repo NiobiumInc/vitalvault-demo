@@ -309,4 +309,3 @@ clinical conclusion. The privacy guarantee is real but bounded: it protects your
 data during server-side computation under a semi-honest server, and it does not
 provide computation-integrity proofs, endpoint security, or protection of what
 the decrypted result itself reveals.
-
