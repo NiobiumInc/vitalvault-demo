@@ -1,0 +1,195 @@
+// server.nb — Server-side encrypted wellness computation for VitalVault
+//============================================================================
+// ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE. NOT FOR CLINICAL USE.
+//
+// Runs on the SERVER (The Fog). NO access to the secret key. Receives the
+// fixed 17-marker encrypted z-vector + mask; the scoring "model" (per-marker
+// penalty shape, panel layout, bio-age betas) is the server's PLAINTEXT data,
+// folded into the circuit. Computes, WITHOUT decrypting:
+//   - per-marker penalty(z)            [shared-degree Chebyshev, ~4 levels]
+//   - weighted system scores           [cipher x plain mask, ~1 level]
+//   - biological-age delta             [weighted sum, ~1 level, PARALLEL]
+//   - per-marker contributions         [byproduct, 0 extra levels]
+//   - follow-up soft indicators        [iterated squaring, ~2 + K levels]
+// Critical path = the follow-up branch (~15); others are shallower parallel
+// branches off the same encrypted z-vector. NO bootstrapping.
+//
+// Compiles to:  compute_wellness <profile>
+//============================================================================
+
+use shared::*
+
+// ============================================================================
+// Plaintext model layout (the server's "weights"). FIXED marker order matches
+// the harness MARKER_ORDER and the 17-wide vector:
+//   0 bmi 1 whtr 2 rhr 3 sbp 4 dbp 5 sleep 6 activity        (core, panel 0)
+//   7 glucose 8 a1c 9 insulin                                 (metabolic, 1)
+//   10 hdl 11 ldl 12 tg 13 tc                                 (lipid, 2)
+//   14 tsh 15 ft3 16 ft4                                      (thyroid, 3)
+// The per-marker model vectors (panel id, beta, directional sign, shape) are
+// declared as function-LOCAL typed vectors inside compute_wellness — see note
+// below the penalty constants.
+
+// Penalty scale: |z|=3 -> ~100 penalty units (matches harness PENALTY_SCALE).
+const PEN_SCALE: f64 = 11.1111
+
+// Chebyshev penalty domain (the clamp range) and shared degree.
+const PEN_LO: f64 = -3.0
+const PEN_HI: f64 = 3.0
+const CHEB_DEGREE: u32 = 13
+
+// Per-marker penalty shape selector (mirrors harness Marker.shape):
+//   0 = U_SHAPED       (deviation either way penalized)
+//   1 = DIRECTIONAL_LOW  (penalize high side only)
+//   2 = DIRECTIONAL_HIGH (penalize low side only)
+//   3 = U_WIDE_LOW     (full high penalty, softened low penalty)
+//   4 = RHR_LOW_FLOOR  (lower-is-better to an athletic floor)
+// NOTE: the per-marker model arrays (shape, panel, beta, sign) are declared as
+// function-LOCAL typed vectors inside compute_wellness rather than module-level
+// `const vec`, because the codegen emits module-level const vec as
+// `constexpr std::vector` (illegal pre-C++20). Local `let x: vec<...> = [...]`
+// emits as a normal `std::vector` that supports indexing.
+
+const UWIDE_LOW_FACTOR: f64 = 0.35
+const RHR_LOW_FLOOR_Z: f64 = -2.0
+
+// ============================================================================
+// Branch-free penalty closures. Each is a smooth function of {x, abs(x), const}
+// so EvalChebyshevFunction fits a single interpolant on [-3,3] and evaluates it
+// with NO data-dependent branch. One-sided ramps:
+//   pos(x) = (x + |x|)/2 == max(0,x)     neg(x) = (x - |x|)/2 == min(0,x)
+// These EXACTLY mirror harness/scoring.py:penalty(), so the encrypted output
+// matches the approved Stage-3 ground truth.
+// ============================================================================
+
+fn pen_u(x: f64) -> f64 { PEN_SCALE * x * x }
+
+fn pen_low(x: f64) -> f64 {                       // penalize high side only
+    let p = (x + abs(x)) / 2.0
+    return PEN_SCALE * p * p
+}
+
+fn pen_high(x: f64) -> f64 {                      // penalize low side only
+    let n = (x - abs(x)) / 2.0
+    return PEN_SCALE * n * n
+}
+
+fn pen_uwide(x: f64) -> f64 {                     // full high, softened low
+    let p = (x + abs(x)) / 2.0
+    let n = (x - abs(x)) / 2.0
+    return PEN_SCALE * p * p + PEN_SCALE * UWIDE_LOW_FACTOR * n * n
+}
+
+fn pen_rhr(x: f64) -> f64 {                       // lower-better to a floor
+    let p = (x + abs(x)) / 2.0
+    let below = x - RHR_LOW_FLOOR_Z
+    let bneg = (below - abs(below)) / 2.0
+    return PEN_SCALE * p * p + PEN_SCALE * bneg * bneg
+}
+
+// Dispatch a marker's z[m] through its approved penalty shape (branch-free
+// over ENCRYPTED data: the shape index is PLAINTEXT/compile-time, so this
+// match selects which fixed Chebyshev circuit to emit — no data branch).
+fn marker_penalty(shape: u32, ct: enc<vec<f64>>) -> enc<vec<f64>> {
+    match shape {
+        0 => chebyshev(pen_u,     ct, domain: [PEN_LO, PEN_HI], degree: CHEB_DEGREE),
+        1 => chebyshev(pen_low,   ct, domain: [PEN_LO, PEN_HI], degree: CHEB_DEGREE),
+        2 => chebyshev(pen_high,  ct, domain: [PEN_LO, PEN_HI], degree: CHEB_DEGREE),
+        3 => chebyshev(pen_uwide, ct, domain: [PEN_LO, PEN_HI], degree: CHEB_DEGREE),
+        4 => chebyshev(pen_rhr,   ct, domain: [PEN_LO, PEN_HI], degree: CHEB_DEGREE),
+    }
+}
+
+// ============================================================================
+// Encrypted wellness computation
+// ============================================================================
+
+@server @stage("compute_wellness")
+@hardware(cache_key: ["profile"])
+fn compute_wellness(inst: Instance)
+    -> reads(CryptoParams, EncryptedProfile),
+       writes(EncryptedResult)
+{
+    let params = load(CryptoParams, from: keydir(inst))
+    let prof = load(EncryptedProfile, from: encdir(inst))
+    let z = prof.markers      // 17 ciphertexts, one per marker (z per slot)
+    let w = prof.mask         // 17 ciphertexts, renormalized panel weights
+
+    // Per-marker model (function-local typed vectors; see note above).
+    // order: bmi whtr rhr sbp dbp sleep activity | glucose a1c insulin | hdl ldl tg tc | tsh ft3 ft4
+    let SHAPE: vec<u32> = [0,1,4,3,3,0,2, 0,1,0, 2,1,1,0, 0,0,0]
+    let PANEL_OF: vec<u32> = [0,0,0,0,0,0,0, 1,1,1, 2,2,2,2, 3,3,3]
+    let BETA: vec<f64> = [0.4,0.4,0.5,0.8,0.5,0.3,0.3, 0.7,1.0,0.3, 0.5,0.5,0.5,0.3, 0.3,0.2,0.2]
+    let SIGN_DIR: vec<f64> = [0.0,1.0,1.0,0.0,0.0,0.0,-1.0, 0.0,1.0,0.0, -1.0,1.0,1.0,0.0, 0.0,0.0,0.0]
+
+    // ---- Branch A: per-marker penalty via shared-degree Chebyshev ---------
+    // Each marker uses its APPROVED penalty shape (U / directional / wide-low /
+    // RHR-floor), branch-free. ~4 levels, all 17 in parallel.
+    // NOTE: built via pre-declared typed vec + push (NOT the `= for {}`
+    // collection form). The collection form mis-lowers in the plaintext-twin
+    // (_ref) path, emitting vector<Ciphertext> instead of vector<vector<f64>>;
+    // declare-then-push lowers correctly in BOTH the encrypted and ref paths.
+    let penalty: vec<enc<vec<f64>>> = []
+    for m in 0..N_MARKERS {
+        penalty.push(marker_penalty(SHAPE[m], z[m]))
+    }
+
+    // ---- Branch A': per-marker contribution (attribution) -----------------
+    // contribution[m] = mask[m] * penalty[m]  (cipher x cipher, +1 level off A)
+    let contributions_v: vec<enc<vec<f64>>> = []
+    for m in 0..N_MARKERS {
+        contributions_v.push(penalty[m] * w[m])
+    }
+
+    // ---- System scores: 100 - sum_over_panel(mask * penalty) --------------
+    // One accumulator per panel; weighted penalties summed via the mask.
+    let score_slots: vec<enc<vec<f64>>> = []
+    for p in 0..N_PANELS {
+        let acc: enc<vec<f64>> = zero()
+        for m in 0..N_MARKERS {
+            if PANEL_OF[m] == p {
+                acc = acc + contributions_v[m]
+            }
+        }
+        score_slots.push(negate(acc) + 100.0)
+    }
+    // Pack the N_PANELS panel scores into one ciphertext (slot per panel).
+    // (Removed: rotation-based packing required per-index EvalRotate keys and
+    // is unnecessary for a demo. Each panel score is returned as its own
+    // ciphertext — the client decrypts each and reads slot 0. This matches the
+    // fhe-NetworkMonitor pattern of returning per-element ciphertexts.)
+
+    // ---- Branch B: biological-age delta (PARALLEL, ~1 level) --------------
+    // Directional markers contribute beta*sign*z (signed). U-shaped markers
+    // (sign==0) contribute via penalty magnitude, reconstructed client-side
+    // from the returned contributions vector to avoid an in-circuit sqrt.
+    let bio: enc<vec<f64>> = zero()
+    for m in 0..N_MARKERS {
+        bio = bio + (z[m] * w[m]) * (BETA[m] * SIGN_DIR[m])
+    }
+    let bioage_delta: enc<vec<f64>> = bio |> slot_sum(inst.n_slots)
+
+    // ---- Branch C: follow-up indicators (DEEPEST, ~2 + K) -----------------
+    // Soft indicator rising toward 1 as |z| exceeds FOLLOWUP_Z, computed from
+    // RAW z (not the Chebyshev penalty) so this branch stays PARALLEL to the
+    // score branch. fraud-flag iterated-squaring shape.
+    let inv_thr_sq = 1.0 / (FOLLOWUP_Z * FOLLOWUP_Z)
+    let followups_v: vec<enc<vec<f64>>> = []
+    for m in 0..N_MARKERS {
+        let facc: enc<vec<f64>> = zero()
+        facc = (z[m] * z[m]) * inv_thr_sq  // ~1 at |z|=2, >1 beyond
+        for r in 0..K_SQUARINGS {
+            facc = facc * facc
+        }
+        followups_v.push(facc)
+    }
+
+    // Return per-element ciphertext vectors (no rotation packing). The client
+    // decrypts each ciphertext and reads slot 0 for its scalar value.
+    return EncryptedResult {
+        system_scores: score_slots,
+        bioage_delta: bioage_delta,
+        contributions: contributions_v,
+        followups: followups_v,
+    }
+}

@@ -1,0 +1,118 @@
+// shared.nb — Types and constants for VitalVault privacy-preserving biomarker analytics
+//============================================================================
+// ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE. NOT FOR CLINICAL USE.
+//
+// A client holds private health inputs and lab values; a server (The Fog)
+// computes wellness scores, a biological-age delta, per-marker contributions,
+// and conservative follow-up indicators WITHOUT ever seeing the values.
+//
+// Design (skill stages 1-6; full walkthrough in README.md):
+//   - Single encryptor: the client encrypts its own standardized biomarker
+//     vector; the scoring weights and reference constants are the server's
+//     plaintext "model", folded into the circuit.
+//   - CLIENT-SIDE (cleartext, on the user's own data, leaks nothing new):
+//     unit handling, BMI / waist-to-height engineering, standardization
+//     z = (x - mid)/hw clamped to [-3, 3], presence masking + within-panel
+//     weight renormalization, bio-age chrono add + caps, banding, confidence.
+//   - SERVER-SIDE (this encrypted circuit): penalty(z) via shared-degree
+//     Chebyshev, weighted system penalties -> scores, bio-age delta, per-term
+//     contributions, follow-up indicators via iterated squaring.
+//   - FIXED 17-marker vector: Core(7) + Metabolic(3) + Lipid(4) + Thyroid(3).
+//     Absent markers encrypt as z=0 with mask weight 0, so EVERY profile
+//     produces the identical ciphertext shape/count -> the server cannot
+//     infer which labs were provided (privacy invariant).
+//   - Parameters: CKKS, ring_dim 65536 (hardware target), 128-classic,
+//     depth 20, first_mod 60, q_i 50; critical path ~15 (follow-up branch),
+//     NO bootstrapping. See client.nb scheme block + the nbc check note.
+//============================================================================
+
+enum Profile { Toy, Full }
+
+// Fixed marker-vector width. FROZEN: changing this invalidates existing
+// keys/ciphertexts. Core 7 + Metabolic 3 + Lipid 4 + Thyroid 3 = 17.
+const N_MARKERS: u32 = 17
+
+// Number of distinct system panels (core, metabolic, lipid, thyroid).
+const N_PANELS: u32 = 4
+
+// Standardization clamp domain [-Z_CLAMP, Z_CLAMP] — also the Chebyshev
+// approximation domain on the server.
+const Z_CLAMP: f64 = 3.0
+
+// Follow-up nudge threshold: |z| > FOLLOWUP_Z -> "discuss with a provider".
+const FOLLOWUP_Z: f64 = 2.0
+
+// Iterated-squaring count for the soft follow-up indicator (depth ~2 + K).
+const K_SQUARINGS: u32 = 13
+
+struct Instance {
+    profile: Profile,
+    ring_dim: u32,
+    n_slots: u32,       // users packed per ciphertext batch (ring_dim / 2)
+    n_markers: u32,     // = N_MARKERS (17), one ciphertext per marker column
+    depth: u32,         // declared multiplicative depth (20)
+}
+
+fn instance(profile: Profile) -> Instance {
+    match profile {
+        Toy  => Instance { profile, ring_dim: 2048,  n_slots: 512,
+                           n_markers: 17, depth: 20 },
+        // HARD deployment constraint: hardware targets ring dim 2^16.
+        Full => Instance { profile, ring_dim: 65536, n_slots: 32768,
+                           n_markers: 17, depth: 20 },
+    }
+}
+
+fn instance_name(profile: Profile) -> string {
+    match profile {
+        Toy  => "toy",
+        Full => "full",
+    }
+}
+
+// ============================================================================
+// Directory layout (mirrors fraud-flag / fhe-NetworkMonitor conventions)
+// ============================================================================
+
+fn iodir(inst: Instance) -> path  { root() / "io" / instance_name(inst.profile) }
+fn keydir(inst: Instance) -> path { iodir(inst) / "keys" }
+fn encdir(inst: Instance) -> path { iodir(inst) / "encrypted" }
+
+// Written by harness/gen_profiles.py (the Stage-3 ground truth):
+//   zvec.bin  — float64 [n_slots x N_MARKERS], standardized clamped z;
+//               column-major use: one marker per ciphertext, one user per slot
+//   wmask.bin — float64 [n_slots x N_MARKERS], renormalized within-panel
+//               weights (0 for absent markers); the server multiplies penalties
+//               by these so absent markers contribute nothing
+//   weights.bin / coeffs.bin — server's plaintext model (panel/marker weights,
+//               bio-age betas, Chebyshev coeffs); folded into the circuit
+fn zvec_file(inst: Instance) -> path   { iodir(inst) / "zvec.bin" }
+fn wmask_file(inst: Instance) -> path  { iodir(inst) / "wmask.bin" }
+
+// ============================================================================
+// Wire types (field-type-driven serialization). NO SecretKey may appear here
+// (enforced by the semantic analyzer).
+// ============================================================================
+
+wire CryptoParams {
+    context: CryptoContext,
+    public_key: PublicKey,
+    eval_mult_key: EvalMultKey,
+    eval_rot_keys: EvalAutomorphismKeys,
+}
+
+// The client's standardized biomarker profile: one ciphertext per marker
+// column (N_MARKERS of them), each holding that marker's clamped z replicated
+// (single-user) or one user per slot (cohort batch). Fixed length always.
+wire EncryptedProfile {
+    markers: vec<enc<vec<f64>>>,     // length N_MARKERS, FIXED for every user
+    mask: vec<enc<vec<f64>>>,        // length N_MARKERS, renormalized weights
+}
+
+// Encrypted results returned to the client for local decryption + display.
+wire EncryptedResult {
+    system_scores: vec<enc<vec<f64>>>,   // one ciphertext per panel (N_PANELS)
+    bioage_delta: enc<vec<f64>>,         // summed bio-age delta (pre-cap), slot-summed
+    contributions: vec<enc<vec<f64>>>,   // one ciphertext per marker (N_MARKERS)
+    followups: vec<enc<vec<f64>>>,       // one ciphertext per marker (N_MARKERS)
+}

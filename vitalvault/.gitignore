@@ -1,0 +1,39 @@
+# VitalVault — ignore all generated / runtime artifacts.
+# Only source is committed: *.nb, harness/*.py, README.md
+# (and Makefile.vitalvault, which lives one level up in dsl_fhe/).
+#
+# ILLUSTRATIVE / DEMO-ONLY project. Generated keys and ciphertexts below are
+# run-specific and must never be committed.
+
+# --- nbc code generation + C++ build tree ---------------------------------
+nb_out/
+nb_out*/            # catches "nb_out 2" and similar Finder/duplicate copies
+build/
+*.o
+*.obj
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# --- runtime I/O: keys, ciphertexts, generated inputs, references ----------
+io/                 # keys/, encrypted/, zvec.bin, wmask.bin, reference.json, cohort_*
+*.bin               # serialized ciphertexts, keys, and packed input matrices
+sk.bin
+cc.bin
+pk.bin
+mk.bin
+rk.bin
+
+# --- FHETCH record/replay scratch directories ------------------------------
+*_workload_*/
+fhetch_driver_source_*/
+
+# --- Python cache ----------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+
+# --- OS / editor noise -----------------------------------------------------
+.DS_Store
+*.swp
+*_profile_[0-9]*/

@@ -1,0 +1,91 @@
+# Makefile.vitalvault — turnkey build + verification for the VitalVault example
+# ===========================================================================
+# ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE. NOT FOR CLINICAL USE.
+#
+# Run from the dsl_fhe/ directory so paths resolve like the main Makefile:
+#     make -f Makefile.vitalvault vitalvault        # DSL -> C++ -> binaries
+#     make -f Makefile.vitalvault test-vitalvault   # full record->replay->decrypt
+#
+# Requires the niobium-client stack to be built first (from the repo root):
+#     make build-release
+# which provides vendor/lib/openfhe and libnbfhetch. WITHOUT that, only the
+# DSL->C++ compile step (which needs no FHE runtime) will succeed.
+# ===========================================================================
+
+XCOMP     := xcomp
+EXAMPLES  := examples
+NPROC     := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+NIOBIUM_CLIENT_ROOT ?= $(realpath $(CURDIR)/..)
+
+VV_DIR    := $(EXAMPLES)/vitalvault
+VV_NB_OUT := $(VV_DIR)/nb_out
+
+LD_LIB_PATH := $(NIOBIUM_CLIENT_ROOT)/vendor/lib/openfhe/lib:$(NIOBIUM_CLIENT_ROOT)/build/vendor/niobium-fhetch:$(NIOBIUM_CLIENT_ROOT)/vendor/niobium-fhetch/build:$(NIOBIUM_CLIENT_ROOT)/build/_deps/yaml_cpp-build
+NBCC_FHETCH_DRIVER ?= $(NIOBIUM_CLIENT_ROOT)/vendor/niobium-fhetch/build/tests/fhetch_driver/fhetch_driver
+export NBCC_FHETCH_DRIVER
+
+.PHONY: vitalvault test-vitalvault vitalvault-check vitalvault-cohort clean-vitalvault
+
+# --- DSL -> C++ -> binaries -------------------------------------------------
+vitalvault:
+	@echo "=== Compiling VitalVault (DSL -> C++) ==="
+	@mkdir -p $(VV_NB_OUT)
+	@cd $(XCOMP) && python3 nbc.py compile \
+		../$(VV_DIR)/shared.nb \
+		../$(VV_DIR)/client.nb \
+		../$(VV_DIR)/server.nb \
+		--outdir ../$(VV_NB_OUT)
+	@echo ""
+	@echo "=== Building VitalVault (C++ -> binaries) ==="
+	@mkdir -p $(VV_NB_OUT)/build
+	@cd $(VV_NB_OUT)/build && \
+		cmake .. -DNIOBIUM_CLIENT_ROOT=$(NIOBIUM_CLIENT_ROOT) && \
+		$(MAKE) -j$(NPROC) 2>&1
+	@echo ""
+	@echo "Built binaries in $(VV_NB_OUT)/build/"
+
+# --- Semantic check only (no build; runs anywhere) --------------------------
+vitalvault-check:
+	@cd $(XCOMP) && python3 nbc.py check \
+		../$(VV_DIR)/shared.nb ../$(VV_DIR)/client.nb ../$(VV_DIR)/server.nb
+
+# --- Stage-3 ground truth (cleartext; runs anywhere) ------------------------
+vitalvault-cohort:
+	@cd $(VV_DIR) && python3 -m harness.gen_profiles review && \
+		python3 -m harness.gen_profiles cohort 50
+
+# --- Full encrypted verification (REQUIRES built niobium-client stack) ------
+# Generates the Stage-3 ground truth + binary inputs for a persona, runs the
+# four-stage encrypted pipeline (key_generation -> encrypt_profile ->
+# compute_wellness -> decrypt_report), then runs the cleartext reference twins
+# and confirms the decrypted scores match reference.json within tolerance.
+test-vitalvault: vitalvault
+	@echo ""
+	@echo "=== Testing VitalVault (end-to-end, toy profile) ==="
+	@echo "    ILLUSTRATIVE/DEMO-ONLY, non-diagnostic."
+	@cd $(VV_DIR) && \
+		export LD_LIBRARY_PATH=$(LD_LIB_PATH) && \
+		rm -rf io *_workload_* fhetch_driver_source_* && \
+		B=nb_out/build && \
+		echo "  endurance_athlete persona (the direction-sensitive case)..." && \
+		python3 -m harness.gen_profiles persona endurance_athlete --as-profile toy && \
+		mkdir -p io/toy/keys io/toy/encrypted && \
+		$$B/key_generation 0 && \
+		$$B/encrypt_profile 0 && \
+		$$B/compute_wellness 0 --no-ring-dim-check && \
+		$$B/decrypt_report 0 35.0 && \
+		echo "  (compare printed scores to io/toy/reference.json" && \
+		echo "   system_scores_raw; differences are CKKS noise)" && \
+		echo "" && \
+		echo "  cleartext reference twins (generated ground truth)..." && \
+		$$B/encrypt_profile_ref 0 && \
+		$$B/compute_wellness_ref 0 && \
+		$$B/decrypt_report_ref 0 35.0 && \
+		echo "  PASS  reference pipeline agrees" && \
+		rm -rf *_workload_* fhetch_driver_source_* && \
+		echo "" && echo "VitalVault end-to-end complete (verify scores vs reference.json)."
+
+clean-vitalvault:
+	@rm -rf $(VV_DIR)/nb_out $(VV_DIR)/io $(VV_DIR)/*_workload_* \
+		$(VV_DIR)/fhetch_driver_source_*
+	@echo "cleaned vitalvault generated artifacts"

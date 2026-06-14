@@ -1,0 +1,136 @@
+// client.nb — Client-side stages for VitalVault (owns the secret key)
+//============================================================================
+// ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE. NOT FOR CLINICAL USE.
+//
+// Compiles to:
+//   key_generation  <profile>
+//   encrypt_profile <profile>           (Stage 7b — pending score-floor decision)
+//   decrypt_report  <profile>           (Stage 7b)
+//
+// Profiles: 0=Toy (ring 2048, dev security), 1=Full (ring 65536, 128-classic)
+//============================================================================
+
+use shared::*
+
+// CKKS, ring 65536 (hardware target), 128-classic, no bootstrapping.
+// Depth 20: critical path is the follow-up branch (~2 + K_SQUARINGS = 15);
+// score (Chebyshev ~4) and bio-age (~1) are shallower PARALLEL branches.
+//
+// NOTE on the `nbc check` depth warning: the static tracker counts the
+// follow-up squaring loop body ONCE (reporting depth ~5) because it does not
+// unroll the runtime `for r in 0..K_SQUARINGS` loop. The ACTUAL runtime depth
+// is ~2 + 13 = 15. Do NOT lower depth toward the reported 5 — that would
+// exhaust the noise budget and silently corrupt results. Depth 20 is correct;
+// the ~3.5x ciphertext-size note is the safe direction to err. The real depth
+// check is the runtime record->decrypt comparison against the harness
+// reference (run locally; see README / make test-vitalvault).
+// logQ ~= 60 + 20*50 = 1060 bits; well under the N=65536 ceiling (depth ~34).
+scheme CKKS {
+    security: 128-classic     // Toy overrides to not_set below
+    key_dist: uniform_ternary
+    scaling: flexible_auto
+    precision: 50
+    first_mod: 60
+    depth: 20
+}
+
+requires { add, mul, chebyshev }
+
+// ============================================================================
+// Stage 1: Key generation
+// ============================================================================
+
+@client @stage("key_generation")
+fn generate_keys(inst: Instance) -> writes(CryptoParams)
+{
+    scheme.override(depth: inst.depth)
+
+    if inst.profile == Toy {
+        scheme.override(security: not_set)    // small ring for fast dev runs
+    }
+
+    let keys = keygen()
+    save_secret_key(keys.secret, keydir(inst) / "sk.bin")
+
+    return CryptoParams {
+        context: keys.context,
+        public_key: keys.public,
+        eval_mult_key: keys.eval_mult,
+        eval_rot_keys: keys.eval_rot,
+    }
+}
+
+// ============================================================================
+// Stage 2: Encrypt the standardized biomarker profile
+//
+// The harness (gen_profiles.py) has already done ALL client-side work in
+// cleartext: unit handling, BMI/WHtR engineering, standardization to z,
+// clamping to [-3,3], presence masking, and within-panel weight
+// renormalization. zvec.bin / wmask.bin hold the fixed 17-wide vectors.
+//
+// We encrypt one ciphertext per marker column (N_MARKERS total) for BOTH the
+// z-vector and the mask. The fixed count/shape is the privacy invariant: the
+// server receives 17 z-ciphertexts and 17 mask-ciphertexts for EVERY user,
+// so it cannot tell which labs were actually provided (absent ones are z=0,
+// mask=0).
+// ============================================================================
+
+@client @stage("encrypt_profile")
+fn encrypt_profile(inst: Instance) -> reads(CryptoParams), writes(EncryptedProfile)
+{
+    let params = load(CryptoParams, from: keydir(inst))
+    let zmat = load_matrix<f64>(zvec_file(inst), inst.n_markers)
+    let wmat = load_matrix<f64>(wmask_file(inst), inst.n_markers)
+
+    return EncryptedProfile {
+        markers: for col in 0..inst.n_markers {
+            // Bind the column slice to a `let` BEFORE encrypting. Inlining the
+            // slice directly into encrypt() makes the codegen duplicate the
+            // slice into two lambdas (one for .begin(), one for .end()),
+            // producing iterators into different temporaries -> std::length_error.
+            // Binding it once (as fhe-NetworkMonitor does) evaluates it once.
+            let zcol = zmat[0..inst.n_slots, col]
+            encrypt(params.public_key, zcol)
+        },
+        mask: for col in 0..inst.n_markers {
+            let wcol = wmat[0..inst.n_slots, col]
+            encrypt(params.public_key, wcol)
+        },
+    }
+}
+
+// ============================================================================
+// Stage 4: Decrypt and assemble the report
+//
+// Decrypts the four encrypted result fields and applies the CLIENT-SIDE
+// post-processing that adds no encrypted depth: the biological-age chrono add
+// and +/- caps, the display floor on system scores, banding, and the
+// confidence/headline-qualification rules. Verification compares the RAW
+// decrypted values against the harness reference (within a CKKS tolerance).
+// ============================================================================
+
+@client @stage("decrypt_report")
+fn decrypt_report(inst: Instance, chrono_age: f64 = 40.0) -> reads(EncryptedResult)
+{
+    let sk = load_secret_key(keydir(inst) / "sk.bin")
+    let res = load(EncryptedResult, from: encdir(inst))
+
+    // Each result field is a vector of ciphertexts; decrypt each and read
+    // slot 0 for its scalar value.
+    let bioage_delta = decrypt(sk, res.bioage_delta)
+
+    // Client-side bio-age cap (no encrypted depth): clamp delta to [-8, +10],
+    // then add chronological age.
+    let delta = bioage_delta[0]
+    if delta < -8.0 { delta = -8.0 }
+    if delta > 10.0 { delta = 10.0 }
+    let biological_age = chrono_age + delta
+
+    print(str(biological_age))
+
+    // Raw system scores: one ciphertext per panel; print slot 0 of each.
+    for p in 0..N_PANELS {
+        let s = decrypt(sk, res.system_scores[p])
+        print(str(s[0]))
+    }
+}
