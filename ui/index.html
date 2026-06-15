@@ -1,0 +1,620 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+:root{
+  --paper:#FAF8F4;--card:#FFFFFF;--ink:#293730;--ink-soft:#5C6B62;--hair:#ECE8E0;
+  --sage:#7C9885;--sage-deep:#48624F;--sage-tint:#EDF2EE;
+  --slate:#3F5B6B;--slate-soft:#5E7E92;--slate-tint:#EAF0F3;--mist:#9DBED0;
+  --amber:#E2A33C;--amber-deep:#9A7426;--amber-tint:#FAF0DC;--rose:#D89A93;--r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#E5E2DB;}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:24px 12px;}
+.phone{width:390px;max-width:100%;background:var(--paper);border-radius:40px;overflow:hidden;
+  box-shadow:0 16px 50px rgba(41,55,48,.18),0 3px 10px rgba(41,55,48,.09);position:relative;}
+.notch{height:30px;display:flex;align-items:center;justify-content:center;}
+.notch::after{content:"";width:118px;height:6px;border-radius:6px;background:#dcd8d0;}
+.demobar{background:#2E3A34;color:#cfdbd2;font-size:10.5px;text-align:center;padding:6px 14px;line-height:1.4;}
+.demobar b{color:#fff;font-weight:600;}
+.viewport{height:752px;position:relative;overflow:hidden;}
+.view{position:absolute;inset:0;overflow-y:auto;scroll-behavior:smooth;background:var(--paper);
+  transition:transform .34s cubic-bezier(.4,0,.2,1),opacity .28s ease;}
+.view::-webkit-scrollbar{width:0}
+.view.enter-right{transform:translateX(100%);}
+.view.enter-left{transform:translateX(-26%);opacity:.4;}
+.wrap{padding:4px 20px 40px;}
+.nav{display:flex;align-items:center;gap:6px;padding:10px 2px 12px;min-height:46px;}
+.back{display:inline-flex;align-items:center;gap:4px;font-size:14px;color:var(--slate);font-weight:500;cursor:pointer;background:none;border:none;padding:6px 8px 6px 0;}
+.back svg{width:18px;height:18px;}
+.navtitle{font-size:14px;font-weight:600;margin-left:auto;margin-right:auto;}
+.navspacer{width:34px;}
+.brand{display:flex;align-items:center;gap:9px;}
+.brand .nm{font-family:'Fraunces',serif;font-weight:600;font-size:20px;letter-spacing:-.01em;color:var(--slate);}
+.eyebrow{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--slate-soft);font-weight:600;margin-bottom:13px;}
+.block{margin-top:38px;}
+.sectit{font-family:'Fraunces',serif;font-size:22px;font-weight:500;letter-spacing:-.01em;margin-bottom:3px;}
+.secsub{font-size:12.5px;color:var(--ink-soft);margin-bottom:17px;line-height:1.5;}
+
+/* WELCOME */
+.welcome{text-align:center;padding:46px 6px 0;}
+.welcome .mark{margin:0 auto 26px;}
+.welcome h1{font-family:'Fraunces',serif;font-size:30px;font-weight:500;letter-spacing:-.02em;margin-bottom:12px;}
+.welcome p{font-size:13.5px;color:var(--ink-soft);line-height:1.6;margin-bottom:8px;}
+.welcome .priv{font-size:11.5px;color:var(--slate-soft);margin-top:18px;display:inline-flex;align-items:center;gap:6px;}
+.welcome .priv svg{width:14px;height:14px;}
+
+/* FORM */
+.stepdots{display:flex;gap:6px;justify-content:center;margin:2px 0 22px;}
+.stepdots b{width:7px;height:7px;border-radius:50%;background:#dcd7cc;display:inline-block;transition:background .3s,width .3s;}
+.stepdots b.on{background:var(--slate);width:20px;border-radius:4px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
+.field label .opt{color:var(--slate-soft);font-weight:400;font-size:11px;}
+.field input,.field select{width:100%;height:46px;border:1px solid var(--hair);border-radius:12px;background:#fff;
+  padding:0 14px;font-size:15px;font-family:'Inter';color:var(--ink);outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus{border-color:var(--mist);}
+.field .unit{position:relative;}
+.field .unit span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--slate-soft);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.field .lblrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.field .lblrow label{margin-bottom:0;}
+.unittoggle{display:inline-flex;background:#F0ECE3;border-radius:9px;padding:2px;gap:2px;}
+.unittoggle button{border:none;background:none;font-family:'Inter';font-size:10.5px;font-weight:600;color:var(--slate-soft);
+  padding:4px 9px;border-radius:7px;cursor:pointer;transition:all .15s;letter-spacing:.01em;}
+.unittoggle button.sel{background:#fff;color:var(--slate);box-shadow:0 1px 2px rgba(41,55,48,.08);}
+.ftin{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.ftin .unit span{font-size:11px;}
+.seg-input{display:flex;gap:6px;}
+.seg-input button{flex:1;height:42px;border:1px solid var(--hair);background:#fff;border-radius:10px;font-size:11px;font-weight:500;color:var(--ink-soft);cursor:pointer;transition:all .15s;}
+.seg-input button.sel{background:var(--slate);color:#fff;border-color:var(--slate);}
+.panelgroup{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:15px 15px 4px;margin-bottom:13px;}
+.panelgroup .pgh{font-size:13px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:8px;}
+.panelgroup .pgh .g{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.panelgroup .pgh .g svg{width:14px;height:14px;}
+.panelgroup .pgsub{font-size:11px;color:var(--slate-soft);margin-bottom:13px;}
+.btn{width:100%;height:50px;border:none;border-radius:13px;background:var(--slate);color:#fff;font-size:15px;font-weight:600;font-family:'Inter';cursor:pointer;margin-top:8px;transition:transform .15s,background .2s;}
+.btn:active{transform:scale(.98);}
+.btn.ghost{background:#fff;color:var(--slate);border:1px solid var(--hair);}
+.btn:disabled{background:#cdd5d0;cursor:not-allowed;}
+.formfoot{display:flex;gap:10px;margin-top:18px;}
+.skip{text-align:center;font-size:12px;color:var(--slate-soft);margin-top:14px;cursor:pointer;}
+.err{font-size:11px;color:#a3492d;margin-top:6px;display:none;}
+.err.show{display:block;}
+
+/* HERO + dashboard (same language) */
+.hero{text-align:center;padding:10px 0 4px;}
+.ringlbl{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--slate-soft);margin-bottom:12px;}
+.ring-wrap{position:relative;width:228px;height:228px;margin:0 auto;}
+.bigage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.bigage .num{font-family:'Fraunces',serif;font-weight:500;font-size:74px;line-height:1;letter-spacing:-.025em;}
+.bigage .lbl{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--slate-soft);margin-top:6px;}
+.payoff{margin-top:18px;}
+.payoff .big{font-family:'Fraunces',serif;font-size:24px;font-weight:500;}
+.payoff .sub{font-size:13px;color:var(--ink-soft);margin-top:5px;}
+.heroqual{margin-top:16px;display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--amber-deep);background:var(--amber-tint);border:1px solid #f0ddb6;padding:7px 14px;border-radius:20px;cursor:pointer;}
+.vstrip{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:24px;font-size:13px;color:var(--ink-soft);flex-wrap:wrap;}
+.vstrip .sc{font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--ink);}
+.vstrip .band{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:11px;}
+.vstrip .dot{width:3px;height:3px;border-radius:50%;background:#cfc9bd;}
+.vstrip .bars{display:inline-flex;gap:2px;}
+.vstrip .bars b{width:11px;height:4px;border-radius:2px;display:inline-block;}
+
+.sysrow{display:flex;flex-direction:column;gap:11px;}
+.syscard{background:var(--card);border:1px solid var(--hair);border-radius:15px;display:flex;align-items:stretch;cursor:pointer;transition:border-color .2s,transform .15s;overflow:hidden;}
+.syscard:active{transform:scale(.985);}
+.sysedge{width:5px;flex:none;}
+.sysbody{display:flex;align-items:center;gap:13px;padding:14px 15px;flex:1;min-width:0;}
+.sysglyph{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;}
+.sysglyph svg{width:19px;height:19px;}
+.sysdial{width:44px;height:44px;flex:none;position:relative;}
+.sysdial .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:500;font-family:'Fraunces',serif;}
+.sysinfo{flex:1;min-width:0;}
+.sysname{font-size:14px;font-weight:600;}
+.syssum{font-size:11.5px;color:var(--ink-soft);margin-top:2px;line-height:1.35;}
+.syschev{color:#c3bdb2;font-size:17px;align-self:center;padding-right:13px;}
+
+.drivecol{background:var(--card);border:1px solid var(--hair);border-radius:15px;padding:15px 17px;margin-bottom:11px;}
+.drivehdr{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:12px;}
+.drivehdr .ic{width:23px;height:23px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:none;}
+.drivehdr.help .ic{background:var(--sage-tint);color:var(--sage-deep);}
+.drivehdr.hold .ic{background:var(--amber-tint);color:var(--amber-deep);}
+.drivehdr.help{color:var(--sage-deep);}.drivehdr.hold{color:var(--amber-deep);}
+.dl-item{display:flex;align-items:center;gap:11px;padding:8px 0;}
+.dl-item:not(:last-child){border-bottom:1px solid #f3f0ea;}
+.dl-name{flex:1;font-size:13px;}
+.dl-bar{width:60px;height:6px;border-radius:4px;background:#efece6;position:relative;flex:none;}
+.dl-bar .f{position:absolute;left:0;top:0;bottom:0;border-radius:4px;}
+.dl-val{width:46px;text-align:right;font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;flex:none;}
+.emptyline{font-size:12px;color:var(--ink-soft);padding:6px 0;}
+
+.fucard{background:var(--card);border:1px solid var(--hair);border-radius:15px;padding:15px 16px;margin-bottom:10px;border-left:4px solid var(--amber);cursor:pointer;}
+.funame{font-size:14px;font-weight:600;}
+.fubody{font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin-top:4px;}
+.fulink{font-size:11.5px;color:var(--slate);font-weight:600;margin-top:10px;}
+.fuempty{background:var(--sage-tint);border-radius:14px;padding:18px;text-align:center;font-size:12.5px;color:var(--sage-deep);}
+
+.bm{background:var(--card);border:1px solid var(--hair);border-radius:16px;padding:17px 17px 18px;margin-bottom:12px;cursor:pointer;transition:border-color .2s,transform .15s;}
+.bm:active{transform:scale(.99);}
+.bmhead{display:flex;justify-content:space-between;align-items:flex-start;}
+.bmname{font-size:15px;font-weight:600;}
+.bmfn{font-size:11px;color:var(--slate-soft);margin-top:2px;letter-spacing:.02em;}
+.bmexp{color:#c3bdb2;font-size:15px;}
+.bmval{font-family:'Fraunces',serif;font-size:26px;font-weight:500;margin:11px 0 15px;}
+.bmval small{font-size:12.5px;color:var(--ink-soft);font-family:'Inter';font-weight:400;margin-left:3px;}
+.seg{display:flex;gap:4px;align-items:center;position:relative;height:9px;}
+.seg .s{height:9px;border-radius:5px;flex:1;}
+.tick{position:absolute;top:-4px;width:2.5px;height:17px;border-radius:2px;background:var(--ink);}
+.anchors{display:flex;justify-content:space-between;margin-top:8px;}
+.anchors span{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a8b0a8;}
+.anchors span.mid{color:var(--sage-deep);font-weight:600;}
+.bmstat{font-size:11.5px;font-weight:600;margin-top:11px;display:inline-flex;align-items:center;gap:6px;}
+.bmstat i{font-style:normal;width:7px;height:7px;border-radius:50%;display:inline-block;}
+
+.panelhdr{background:var(--card);border:1px solid var(--hair);border-radius:var(--r);padding:18px 19px;display:flex;align-items:center;gap:15px;margin-bottom:8px;}
+.panelhdr .pdial{width:56px;height:56px;position:relative;flex:none;}
+.panelhdr .pdial .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:15px;font-weight:500;}
+.panelhdr .pname{font-family:'Fraunces',serif;font-size:20px;font-weight:500;}
+.panelhdr .pmeta{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+
+.mdval{text-align:center;padding:14px 0 4px;}
+.mdval .v{font-family:'Fraunces',serif;font-size:56px;font-weight:500;line-height:1;letter-spacing:-.02em;}
+.mdval .u{font-size:14px;color:var(--ink-soft);margin-top:6px;}
+.mdstat{text-align:center;margin:14px 0 24px;}
+.mdstat .badge{font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;display:inline-flex;align-items:center;gap:7px;}
+.mdstat .badge i{font-style:normal;width:7px;height:7px;border-radius:50%;display:inline-block;}
+.mdscale{background:var(--card);border:1px solid var(--hair);border-radius:16px;padding:20px 18px 18px;margin-bottom:14px;}
+.mdscale .seg{height:11px;}.mdscale .seg .s{height:11px;}
+.mdscale .tick{top:-4px;height:19px;width:3px;}
+.mdscale .anchors{margin-top:11px;}
+.mdscale .rangetxt{font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:14px;padding-top:13px;border-top:1px solid var(--hair);}
+.mdscale .rangetxt b{color:var(--ink);font-weight:600;}
+.mdsection{background:var(--card);border:1px solid var(--hair);border-radius:16px;padding:16px 18px;margin-bottom:14px;}
+.mdsection h4{font-size:13px;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:7px;}
+.mdsection h4 svg{width:15px;height:15px;color:var(--slate-soft);}
+.mdsection p{font-size:12.5px;color:var(--ink-soft);line-height:1.6;}
+.contribrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;}
+.contribrow:not(:last-child){border-bottom:1px solid #f3f0ea;}
+.contribrow .cl{font-size:12.5px;color:var(--ink-soft);}
+.contribrow .cv{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;}
+.mdprivacy{font-size:11px;color:var(--slate-soft);text-align:center;line-height:1.55;margin:6px 6px 0;padding:13px;background:var(--slate-tint);border-radius:12px;}
+.mdprivacy svg{width:13px;height:13px;vertical-align:-2px;margin-right:4px;}
+
+.privacy{margin-top:40px;background:var(--slate-tint);border:1px solid #d8e3ea;border-radius:var(--r);padding:18px 19px;}
+.privtop{display:flex;align-items:center;gap:12px;cursor:pointer;}
+.privlock{width:36px;height:36px;border-radius:11px;background:#fff;border:1px solid #d2e0e7;display:flex;align-items:center;justify-content:center;color:var(--slate);flex:none;}
+.privlock svg{width:17px;height:17px;}
+.privttl{font-size:13.5px;font-weight:600;color:var(--slate);}
+.privsub{font-size:11.5px;color:var(--slate-soft);margin-top:1px;}
+.privchev{margin-left:auto;color:var(--mist);transition:transform .3s;}
+.privbody{max-height:0;overflow:hidden;transition:max-height .45s ease;}
+.privbody.open{max-height:360px;}
+.privledger{margin-top:15px;padding-top:14px;border-top:1px solid #d8e3ea;}
+.lrow{display:flex;gap:10px;font-size:12px;color:#46606e;padding:6px 0;align-items:flex-start;line-height:1.5;}
+.lrow svg{width:14px;height:14px;flex:none;margin-top:3px;color:var(--slate);}
+.foot{margin-top:28px;text-align:center;}
+.footnote{font-size:10px;color:#9aa39c;line-height:1.65;padding:0 6px;}
+.footlink{font-size:11px;color:var(--slate);font-weight:600;margin-top:11px;display:inline-block;cursor:pointer;}
+</style>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="demobar">Local browser demo · scores computed in JavaScript · <b>not the live FHE pipeline</b></div>
+  <div class="viewport" id="vp"></div>
+</div>
+
+<script>
+/* =========================================================================
+   TODO before deployment — this UI now models all 17 markers (Core 7,
+   Metabolic 3, Lipid 4, Thyroid 3), aligned with the README/scoring system.
+   NOTE: scores here are computed by a JavaScript PORT of the Python harness
+   (harness/scoring.py + constants.py). It mirrors that logic closely but is
+   NOT the encrypted FHE pipeline. The FHE computation was verified separately
+   in the backend prototype (Toy profile: decrypted output matched the
+   cleartext reference within CKKS noise). Sex is collected but NOT yet used in
+   scoring (sex-neutral ranges for v1; sex-specific ranges are a future step).
+   ========================================================================= */
+const BACK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+const heart='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.3 3-5.5A3.5 3.5 0 0 0 12 6 3.5 3.5 0 0 0 2 8.5C2 12 6 15 12 20c2-1.7 4-3.3 5.5-4.8"/></svg>';
+const spark='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>';
+const drop='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>';
+const flower='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 9V4M12 15v5M9 12H4M15 12h5"/></svg>';
+
+/* ===== MODEL (ported from constants.py) ===== */
+const Z_CLAMP=3.0, FOLLOWUP_Z=2.0, PENALTY_SCALE=100.0/(Z_CLAMP*Z_CLAMP);
+const RHR_FLOOR=-2.0, UWIDE_LOW=0.35, BIOAGE_MAX_RED=8.0, BIOAGE_MAX_INC=10.0, DISPLAY_FLOOR=30.0;
+const U='u',DL='dl',DH='dh',UW='uw';
+const PENALTY_BASED=new Set([U,UW]);
+const OPTIONAL=new Set(['whtr','insulin']);
+const PANEL_COMPOSITE={core:.30,metabolic:.30,lipid:.25,thyroid:.15};
+const PANEL_INFO={core:.40,metabolic:.25,lipid:.20,thyroid:.15};
+const PANELS=['core','metabolic','lipid','thyroid'];
+const PANEL_META={
+  core:{name:'Core vitals',glyph:heart,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'},
+  metabolic:{name:'Metabolic',glyph:spark,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
+  lipid:{name:'Lipids',glyph:drop,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
+  thyroid:{name:'Thyroid',glyph:flower,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'}
+};
+// key:[label, fn-subtitle, unit, mid, hw, shape, beta, panel, about, rangeText]
+const M={
+ bmi:['Body Mass Index','BODY COMPOSITION','kg/m²',21.7,4.0,U,0.4,'core','Weight relative to height. A mid-range value is associated with lower long-term risk.','18.5–25.0'],
+ whtr:['Waist-to-Height','BODY COMPOSITION','ratio',0.48,0.05,DL,0.4,'core','Waist size relative to height — a strong, simple signal of metabolic health.','<0.50'],
+ rhr:['Resting Heart Rate','CARDIOVASCULAR LOAD','bpm',62.0,13.0,DL,0.5,'core','Beats per minute at rest. Lower generally reflects better cardiovascular fitness.','~49–75'],
+ sbp:['Systolic BP','VASCULAR PRESSURE','mmHg',112.0,13.0,UW,0.8,'core','The upper blood-pressure number. A healthy range protects your heart and vessels.','<120'],
+ dbp:['Diastolic BP','VASCULAR PRESSURE','mmHg',74.0,9.0,UW,0.5,'core','The lower blood-pressure number, measured between beats.','<80'],
+ sleep:['Sleep Duration','NIGHTLY RECOVERY','hrs',7.5,1.5,U,0.3,'core','Average nightly sleep. Consistent 7–9 hours supports recovery and longevity.','7–9 h'],
+ activity:['Activity Level','WEEKLY MOVEMENT','',0.6,0.4,DH,0.3,'core','Your overall movement load — one of the strongest levers on biological age.','Higher better'],
+ glucose:['Fasting Glucose','BLOOD SUGAR BALANCE','mg/dL',85.0,15.0,U,0.7,'metabolic','Blood sugar after fasting. Stable levels reflect healthy metabolic function.','70–99'],
+ a1c:['Hemoglobin A1C','3-MONTH GLUCOSE','%',5.2,0.5,DL,1.0,'metabolic','Average blood sugar over ~3 months — a steadier view than one reading.','<5.7'],
+ insulin:['Fasting Insulin','METABOLIC EFFICIENCY','µIU/mL',7.0,4.0,U,0.3,'metabolic','How much insulin you need to manage blood sugar. Lower often reflects good health.','2–12'],
+ hdl:['HDL Cholesterol','PROTECTIVE CHOLESTEROL','mg/dL',58.0,18.0,DH,0.5,'lipid','The “good” cholesterol that clears other fats. Higher is generally protective.','≥50'],
+ ldl:['LDL Cholesterol','CIRCULATING CHOLESTEROL','mg/dL',90.0,35.0,DL,0.5,'lipid','The cholesterol that can build up in arteries. Lower is generally better.','<100'],
+ tg:['Triglycerides','BLOOD FATS','mg/dL',90.0,50.0,DL,0.5,'lipid','Fat circulating in your blood. Lower is associated with better metabolic health.','<150'],
+ tc:['Total Cholesterol','OVERALL LIPIDS','mg/dL',175.0,40.0,U,0.3,'lipid','The sum of cholesterol types — read alongside HDL and LDL.','<200'],
+ tsh:['TSH','THYROID SIGNAL','mIU/L',1.8,1.3,U,0.3,'thyroid','The hormone telling your thyroid how hard to work. Mid-range reflects balance.','0.4–4.0'],
+ ft3:['Free T3','ACTIVE THYROID','pg/mL',3.3,0.7,U,0.2,'thyroid','The active thyroid hormone driving metabolism and energy.','2.3–4.2'],
+ ft4:['Free T4','THYROID RESERVE','ng/dL',1.2,0.4,U,0.2,'thyroid','The thyroid hormone your body converts into its active form.','0.8–1.8']
+};
+const KEYS=Object.keys(M);
+function panelKeys(p){return KEYS.filter(k=>M[k][7]===p);}
+
+/* ===== SCORING (ported from scoring.py) ===== */
+function standardize(k,v){const m=M[k];return Math.max(-Z_CLAMP,Math.min(Z_CLAMP,(v-m[3])/m[4]));}
+function penalty(k,z){
+  const shape=M[k][5],s=PENALTY_SCALE;
+  if(shape===U)return s*z*z;
+  if(shape===UW)return z>=0?s*z*z:s*UWIDE_LOW*z*z;
+  if(shape===DH)return z>=0?0:s*z*z;
+  if(shape===DL){
+    if(z<=0){ if(k==='rhr'&&z<RHR_FLOOR){const e=z-RHR_FLOOR;return s*e*e;} return 0; }
+    return s*z*z;
+  }
+  return 0;
+}
+function present(prof){return KEYS.filter(k=>prof[k]!=null&&!isNaN(prof[k]));}
+function panelPresent(prof,p){return panelKeys(p).filter(k=>prof[k]!=null&&!isNaN(prof[k]));}
+function presentPanels(prof){return PANELS.filter(p=>panelPresent(prof,p).length>0);}
+function renormWeights(prof,p){
+  const keys=panelPresent(prof,p);if(!keys.length)return {};
+  const w={};keys.forEach(k=>w[k]=1/keys.length);return w;
+}
+function systemScoreRaw(prof,p){
+  const w=renormWeights(prof,p);const keys=Object.keys(w);if(!keys.length)return null;
+  let pen=0;keys.forEach(k=>{pen+=w[k]*penalty(k,standardize(k,prof[k]));});
+  return Math.max(0,Math.min(100,100-pen));
+}
+function displayScore(raw){return raw==null?null:DISPLAY_FLOOR+(100-DISPLAY_FLOOR)*(raw/100);}
+function bandOf(v){return v==null?'n/a':v>=80?'Good':v>=60?'Moderate':'Worth reviewing';}
+function compositeRaw(prof){
+  const ps=presentPanels(prof);if(!ps.length)return null;
+  let wsum=0,acc=0;ps.forEach(p=>{const s=systemScoreRaw(prof,p);wsum+=PANEL_COMPOSITE[p];acc+=PANEL_COMPOSITE[p]*s;});
+  return acc/wsum;
+}
+function bioageTerms(prof){
+  const t={};present(prof).forEach(k=>{
+    const m=M[k],z=standardize(k,prof[k]);
+    if(PENALTY_BASED.has(m[5])){const pen=penalty(k,z);t[k]=m[6]*Math.sqrt(pen/PENALTY_SCALE);}
+    else{const signed=(m[5]===DH)?-z:z;t[k]=m[6]*signed;}
+  });return t;
+}
+function biologicalAge(prof){
+  const t=bioageTerms(prof);let d=Object.values(t).reduce((a,b)=>a+b,0);
+  d=Math.max(-BIOAGE_MAX_RED,Math.min(BIOAGE_MAX_INC,d));return {age:prof.age+d,delta:d,terms:t};
+}
+function confidence(prof){
+  let sc=0;PANELS.forEach(p=>{
+    const core=panelKeys(p).filter(k=>!OPTIONAL.has(k));
+    const pres=core.filter(k=>prof[k]!=null&&!isNaN(prof[k]));
+    sc+=PANEL_INFO[p]*(core.length?pres.length/core.length:0);
+  });sc=Math.max(0,Math.min(1,sc));
+  const band=sc>=.85?'High':sc>=.6?'Moderate':sc>=.35?'Basic':'Limited';
+  return {score:sc,band:band};
+}
+function zoneOf(k,z){ // map z to 0..4 segment
+  if(z<=-1.8)return 0;if(z<=-0.6)return 1;if(z<0.6)return 2;if(z<1.8)return 3;return 4;
+}
+function markerStat(k,z){return Math.abs(z)>FOLLOWUP_Z?'Worth a look':(Math.abs(z)>1?'Fair':'Optimal');}
+
+/* ===== build the report object the dashboard consumes ===== */
+let PROFILE=null, REPORT=null;
+function computeReport(prof){
+  const ps=presentPanels(prof);
+  const sys={};ps.forEach(p=>{const raw=systemScoreRaw(prof,p);sys[p]={raw:raw,disp:Math.round(displayScore(raw))};});
+  const ba=biologicalAge(prof);
+  const comp=compositeRaw(prof);const conf=confidence(prof);
+  // drivers from bioage terms: negative = helping (younger), positive = holding.
+  // PRESENTATION ONLY (math above is untouched): split into "meaningful" drivers
+  // vs tiny technical contributors so a strong profile isn't made to feel bad by
+  // small U-shaped deviations that still sit within a healthy range.
+  const MEANINGFUL=0.5; // years; below this a contributor is "minor", shown softly
+  const terms=ba.terms;const help=[],hold=[];let minorHold=0,minorHoldCount=0;
+  Object.keys(terms).forEach(k=>{const y=terms[k];
+    if(y<-0.02)help.push({k,n:M[k][0],v:Math.abs(y),mag:Math.abs(y)});
+    else if(y>0.02){ if(y>=MEANINGFUL)hold.push({k,n:M[k][0],v:y,mag:y}); else {minorHold+=y;minorHoldCount++;} }
+  });
+  help.sort((a,b)=>b.mag-a.mag);hold.sort((a,b)=>b.mag-a.mag);
+  const fus=present(prof).filter(k=>Math.abs(standardize(k,prof[k]))>FOLLOWUP_Z).map(k=>({k,sys:M[k][7],marker:M[k][0]}));
+  return {prof,ps,sys,ba,comp,conf,help:help.slice(0,4),hold:hold.slice(0,4),minorHold,minorHoldCount,fus,terms};
+}
+
+/* ===== helpers ===== */
+const baseZone=['#F2DCDE','#EDE6D6','#DDE8E0','#EDE6D6','#F2DCDE'];
+const activeZone=['#D89A93','#E2A33C','#7C9885','#E2A33C','#D89A93'];
+function ringSVG(pct,color,size,sw,track){const r=(size/2)-sw,c=2*Math.PI*r,off=c*(1-pct/100);
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="'+(track||'#ECE8E0')+'" stroke-width="'+sw+'"/><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+(size/2)+' '+(size/2)+')"/></svg>';}
+function segBar(zone){const segs=baseZone.map((c,i)=>'<div class="s" style="background:'+(i===zone?activeZone[i]:c)+'"></div>').join('');
+  const left=((zone+0.5)/5*100);return '<div class="seg">'+segs+'<div class="tick" style="left:calc('+left+'% - 1px)"></div></div><div class="anchors"><span>Low</span><span class="mid">Optimal</span><span>High</span></div>';}
+function statColor(s){return s==='Optimal'?{c:'#48624F',d:'#7C9885'}:s==='Fair'?{c:'#5E7E92',d:'#9DBED0'}:{c:'#9A7426',d:'#E2A33C'};}
+function bandStyle(b){return b==='Good'?'background:var(--sage-tint);color:var(--sage-deep)':b==='Moderate'?'background:var(--amber-tint);color:var(--amber-deep)':'background:#f0e2e0;color:#a3492d';}
+
+/* ===== view stack ===== */
+const vp=document.getElementById('vp');let stack=[];
+function render(html,dir){const v=document.createElement('div');v.className='view';v.innerHTML='<div class="wrap">'+html+'</div>';
+  if(dir==='push')v.classList.add('enter-right');vp.appendChild(v);const prev=stack[stack.length-1];
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{v.classList.remove('enter-right');if(prev&&dir==='push')prev.classList.add('enter-left');}));
+  stack.push(v);v.scrollTop=0;return v;}
+function pop(){if(stack.length<2)return;const cur=stack.pop();const prev=stack[stack.length-1];prev.classList.remove('enter-left');cur.classList.add('enter-right');setTimeout(()=>cur.remove(),340);}
+function resetTo(html){stack.forEach(v=>v.remove());stack=[];render(html,'init');}
+
+/* ===== WELCOME ===== */
+function welcome(){return `
+  <div class="welcome">
+    <div class="mark"><svg width="64" height="64" viewBox="0 0 80 80"><path d="M16 22 A30 30 0 1 0 64 22" fill="none" stroke="#3F5B6B" stroke-width="7" stroke-linecap="round"/><path d="M28 30 L40 52 L52 30" fill="none" stroke="#7C9885" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h1>vitalvault</h1>
+    <p>Enter your vitals and lab values to see a personalized biological-age estimate and wellness breakdown.</p>
+    <p style="font-size:12px;color:var(--slate-soft)">Takes about two minutes. Labs are optional — you'll get results from vitals alone.</p>
+    <div class="priv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Runs locally in your browser</div>
+    <button class="btn" style="margin-top:30px" onclick="startForm()">Get started</button>
+    <div class="skip" onclick="loadSample()">or explore with sample data ›</div>
+  </div>`;
+}
+
+/* ===== FORM ===== */
+let formData={};
+function dots(step){return '<div class="stepdots">'+[0,1,2].map(i=>'<b class="'+(i<=step?'on':'')+'"'+'></b>').join('')+'</div>';}
+function field(key,label,unit,opt,type){
+  const lab=label+(opt?' <span class="opt">· optional</span>':'');
+  const inp='<div class="unit"><input id="f_'+key+'" type="'+(type||'number')+'" inputmode="decimal" value="'+(formData[key]!=null?formData[key]:'')+'" oninput="formData[\''+key+'\']=this.value"/>'+(unit?'<span>'+unit+'</span>':'')+'</div>';
+  return '<div class="field"><label>'+lab+'</label>'+inp+'</div>';
+}
+function startForm(){render(step1(),'push');}
+/* ===== units: store metric internally, display imperial by default ===== */
+let units={height:'imperial',weight:'imperial',waist:'imperial'};
+const toFixedTrim=(n,d)=>{const v=(+n).toFixed(d);return v.replace(/\.?0+$/,'');};
+function cmToFtIn(cm){if(cm==null||cm==='')return{ft:'',inch:''};const totalIn=cm/2.54;const ft=Math.floor(totalIn/12);const inch=Math.round((totalIn-ft*12)*10)/10;return{ft:ft,inch:inch};}
+function ftInToCm(ft,inch){const f=parseFloat(ft)||0,i=parseFloat(inch)||0;if(!f&&!i)return null;return +(((f*12)+i)*2.54).toFixed(2);}
+function kgToLb(kg){return kg==null||kg===''?'':Math.round(kg/0.45359237*10)/10;}
+function lbToKg(lb){const v=parseFloat(lb);return isNaN(v)?null:+(v*0.45359237).toFixed(2);}
+function cmToIn(cm){return cm==null||cm===''?'':Math.round(cm/2.54*10)/10;}
+function inToCm(inch){const v=parseFloat(inch);return isNaN(v)?null:+(v*2.54).toFixed(2);}
+
+function unitToggle(dim,a,b){
+  return '<div class="unittoggle">'+
+    '<button class="'+(units[dim]==='imperial'?'sel':'')+'" onclick="setUnit(\''+dim+'\',\'imperial\')">'+a+'</button>'+
+    '<button class="'+(units[dim]==='metric'?'sel':'')+'" onclick="setUnit(\''+dim+'\',\'metric\')">'+b+'</button></div>';
+}
+function bodyFields(){
+  let h;
+  if(units.height==='imperial'){
+    const v=cmToFtIn(formData.height_cm);
+    h='<div class="field"><div class="lblrow"><label>Height</label>'+unitToggle('height','ft/in','cm')+'</div>'+
+      '<div class="ftin"><div class="unit"><input id="f_ft" type="number" inputmode="decimal" value="'+(v.ft!==''?v.ft:'')+'" oninput="syncHeight()"/><span>ft</span></div>'+
+      '<div class="unit"><input id="f_in" type="number" inputmode="decimal" value="'+(v.inch!==''?v.inch:'')+'" oninput="syncHeight()"/><span>in</span></div></div></div>';
+  }else{
+    h='<div class="field"><div class="lblrow"><label>Height</label>'+unitToggle('height','ft/in','cm')+'</div>'+
+      '<div class="unit"><input id="f_height_disp" type="number" inputmode="decimal" value="'+(formData.height_cm!=null?formData.height_cm:'')+'" oninput="formData.height_cm=this.value===\'\'?null:parseFloat(this.value)"/><span>cm</span></div></div>';
+  }
+  let w;
+  if(units.weight==='imperial'){
+    w='<div class="field"><div class="lblrow"><label>Weight</label>'+unitToggle('weight','lb','kg')+'</div>'+
+      '<div class="unit"><input id="f_weight_disp" type="number" inputmode="decimal" value="'+(formData.weight_kg!=null?kgToLb(formData.weight_kg):'')+'" oninput="formData.weight_kg=lbToKg(this.value)"/><span>lb</span></div></div>';
+  }else{
+    w='<div class="field"><div class="lblrow"><label>Weight</label>'+unitToggle('weight','lb','kg')+'</div>'+
+      '<div class="unit"><input id="f_weight_disp" type="number" inputmode="decimal" value="'+(formData.weight_kg!=null?formData.weight_kg:'')+'" oninput="formData.weight_kg=this.value===\'\'?null:parseFloat(this.value)"/><span>kg</span></div></div>';
+  }
+  let waist;
+  if(units.waist==='imperial'){
+    waist='<div class="field"><div class="lblrow"><label>Waist <span class="opt">· optional</span></label>'+unitToggle('waist','in','cm')+'</div>'+
+      '<div class="unit"><input id="f_waist_disp" type="number" inputmode="decimal" value="'+(formData.waist_cm!=null?cmToIn(formData.waist_cm):'')+'" oninput="formData.waist_cm=inToCm(this.value)"/><span>in</span></div></div>';
+  }else{
+    waist='<div class="field"><div class="lblrow"><label>Waist <span class="opt">· optional</span></label>'+unitToggle('waist','in','cm')+'</div>'+
+      '<div class="unit"><input id="f_waist_disp" type="number" inputmode="decimal" value="'+(formData.waist_cm!=null?formData.waist_cm:'')+'" oninput="formData.waist_cm=this.value===\'\'?null:parseFloat(this.value)"/><span>cm</span></div></div>';
+  }
+  return '<div class="row2">'+h+w+'</div>'+waist;
+}
+function syncHeight(){const ft=document.getElementById('f_ft').value,inch=document.getElementById('f_in').value;formData.height_cm=ftInToCm(ft,inch);}
+function setUnit(dim,u){
+  // read current display values into metric BEFORE switching, so nothing is lost
+  if(dim==='height'){if(units.height==='imperial')syncHeight();else{const e=document.getElementById('f_height_disp');if(e)formData.height_cm=e.value===''?null:parseFloat(e.value);}}
+  if(dim==='weight'){const e=document.getElementById('f_weight_disp');if(e)formData.weight_kg=units.weight==='imperial'?lbToKg(e.value):(e.value===''?null:parseFloat(e.value));}
+  if(dim==='waist'){const e=document.getElementById('f_waist_disp');if(e)formData.waist_cm=units.waist==='imperial'?inToCm(e.value):(e.value===''?null:parseFloat(e.value));}
+  units[dim]=u;
+  document.getElementById('bodyfields').innerHTML=bodyFields();
+}
+
+function step1(){return `
+  <div class="nav"><button class="back" onclick="pop()">${BACK}</button><span class="navtitle">About you</span><span class="navspacer"></span></div>
+  ${dots(0)}
+  <div class="secsub" style="text-align:center;margin-bottom:22px">A few basics to anchor your results.</div>
+  ${field('age','Age','years',false)}
+  <div class="field"><label>Sex <span class="opt">· not used in scoring yet</span></label>
+    <div class="seg-input" id="sexseg">
+      <button onclick="pickSex(this,'female')" class="${formData.sex==='female'?'sel':''}">Female</button>
+      <button onclick="pickSex(this,'male')" class="${formData.sex==='male'?'sel':''}">Male</button>
+      <button onclick="pickSex(this,'other')" class="${formData.sex==='other'?'sel':''}">Other</button>
+    </div></div>
+  <div id="bodyfields">${bodyFields()}</div>
+  <div class="err" id="err1">Please enter age, height, and weight to continue.</div>
+  <button class="btn" onclick="next1()">Continue</button>`;
+}
+function pickSex(btn,v){formData.sex=v;document.querySelectorAll('#sexseg button').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+function next1(){
+  const ae=document.getElementById('f_age');if(ae)formData.age=ae.value;
+  // body fields already write metric to formData via oninput / syncHeight; ensure latest display is captured
+  if(units.height==='imperial')syncHeight();else{const e=document.getElementById('f_height_disp');if(e)formData.height_cm=e.value===''?null:parseFloat(e.value);}
+  const we=document.getElementById('f_weight_disp');if(we)formData.weight_kg=units.weight==='imperial'?lbToKg(we.value):(we.value===''?null:parseFloat(we.value));
+  const wa=document.getElementById('f_waist_disp');if(wa)formData.waist_cm=units.waist==='imperial'?inToCm(wa.value):(wa.value===''?null:parseFloat(wa.value));
+  if(!formData.age||!formData.height_cm||!formData.weight_kg){document.getElementById('err1').classList.add('show');return;}
+  render(step2(),'push');
+}
+function step2(){
+  const acts=['Sedentary','Light','Moderate','Active','Very active'];
+  const segs=acts.map((a,i)=>'<button onclick="pickAct(this,'+i+')" class="'+(formData.activity_ord==i?'sel':'')+'">'+a+'</button>').join('');
+  return `
+  <div class="nav"><button class="back" onclick="pop()">${BACK}</button><span class="navtitle">Everyday vitals</span><span class="navspacer"></span></div>
+  ${dots(1)}
+  <div class="secsub" style="text-align:center;margin-bottom:22px">Things you likely know without a lab.</div>
+  ${field('rhr','Resting heart rate','bpm',false)}
+  <div class="row2">${field('sbp','Systolic BP','mmHg',false)}${field('dbp','Diastolic BP','mmHg',false)}</div>
+  ${field('sleep','Typical nightly sleep','hrs',false)}
+  <div class="field"><label>Activity level</label><div class="seg-input" style="flex-wrap:wrap" id="actseg">${segs}</div></div>
+  <div class="err" id="err2">Please enter heart rate, blood pressure, and sleep.</div>
+  <div class="formfoot"><button class="btn ghost" onclick="pop()">Back</button><button class="btn" onclick="next2()">Continue</button></div>`;
+}
+function pickAct(btn,i){formData.activity_ord=i;document.querySelectorAll('#actseg button').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+function next2(){
+  ['rhr','sbp','dbp','sleep'].forEach(k=>{const e=document.getElementById('f_'+k);if(e)formData[k]=e.value;});
+  if(!formData.rhr||!formData.sbp||!formData.dbp||!formData.sleep){document.getElementById('err2').classList.add('show');return;}
+  render(step3(),'push');
+}
+function labGroup(panel,title,glyph,tone,tint,keys){
+  return '<div class="panelgroup"><div class="pgh"><span class="g" style="background:'+tint+';color:'+tone+'">'+glyph+'</span>'+title+'</div>'+
+    '<div class="pgsub">Optional · add what you have</div>'+
+    keys.map(k=>field(k,M[k][0],M[k][2],true)).join('')+'</div>';
+}
+function step3(){return `
+  <div class="nav"><button class="back" onclick="pop()">${BACK}</button><span class="navtitle">Lab results</span><span class="navspacer"></span></div>
+  ${dots(2)}
+  <div class="secsub" style="text-align:center;margin-bottom:20px">All optional. Add any labs you have — each panel needs at least one value to score.</div>
+  ${labGroup('metabolic','Metabolic',spark,'#3F5B6B','#EAF0F3',['glucose','a1c','insulin'])}
+  ${labGroup('lipid','Lipids',drop,'#3F5B6B','#EAF0F3',['hdl','ldl','tg','tc'])}
+  ${labGroup('thyroid','Thyroid',flower,'#7C9885','#EDF2EE',['tsh','ft3','ft4'])}
+  <button class="btn" onclick="finish()">See my results</button>
+  <div class="skip" onclick="finish()">Skip labs — score from vitals only ›</div>`;
+}
+function finish(){
+  KEYS.forEach(k=>{const e=document.getElementById('f_'+k);if(e&&e.value!=='')formData[k]=e.value;});
+  PROFILE=engineer(formData);REPORT=computeReport(PROFILE);
+  resetTo(overview());
+}
+function engineer(raw){
+  const p={};const num=v=>v===''||v==null?null:parseFloat(v);
+  p.age=num(raw.age);
+  const h=num(raw.height_cm),w=num(raw.weight_kg),waist=num(raw.waist_cm);
+  if(h&&w)p.bmi=+(w/((h/100)*(h/100))).toFixed(2);
+  if(waist&&h)p.whtr=+(waist/h).toFixed(4);
+  if(raw.activity_ord!=null)p.activity=+(raw.activity_ord/4).toFixed(3);
+  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
+  p._sex=raw.sex||null; // collected, unused
+  return p;
+}
+function loadSample(){
+  formData={age:44,sex:'female',height_cm:168,weight_kg:64,waist_cm:79,activity_ord:3,
+    rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,tsh:2.1,ft3:3.1};
+  PROFILE=engineer(formData);REPORT=computeReport(PROFILE);resetTo(overview());
+}
+
+/* ===== OVERVIEW ===== */
+function deltaText(d){const a=Math.abs(d);
+  if(a<1.0)return{big:'Right around your age',sub:'biologically in step with '+REPORT.prof.age,col:'var(--slate)'};
+  if(d<0)return{big:Math.round(a)+(Math.round(a)===1?' year':' years')+' younger',sub:'than your actual age of '+REPORT.prof.age,col:'var(--sage-deep)'};
+  return{big:Math.round(a)+(Math.round(a)===1?' year':' years')+' above',sub:'your actual age of '+REPORT.prof.age,col:'var(--amber-deep)'};}
+function overview(){
+  const R=REPORT;const baPct=Math.max(8,Math.min(96,100-(R.ba.delta+10)/20*100));
+  const dt=deltaText(R.ba.delta);
+  const compDisp=Math.round(displayScore(R.comp));const compBand=bandOf(displayScore(R.comp));
+  let sysCards='';
+  R.ps.forEach(p=>{const m=PANEL_META[p];const sc=R.sys[p].disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
+    const np=panelPresent(R.prof,p).length;
+    sysCards+='<div class="syscard" onclick="goPanel(\''+p+'\')"><div class="sysedge" style="background:'+m.edge+'"></div><div class="sysbody">'+
+      '<div class="sysglyph" style="background:'+m.tint+';color:'+m.tone+'">'+m.glyph+'</div><div class="sysdial">'+ringSVG(sc,dc,44,4)+'<div class="pct">'+sc+'</div></div>'+
+      '<div class="sysinfo"><div class="sysname">'+m.name+'</div><div class="syssum">'+np+' marker'+(np>1?'s':'')+' · '+bandOf(R.sys[p].disp)+'</div></div></div><div class="syschev">›</div></div>';
+  });
+  const absent=PANELS.filter(p=>!R.ps.includes(p));
+  let absentNote=absent.length?'<div class="emptyline" style="text-align:center;margin-top:6px">Add '+absent.map(p=>PANEL_META[p].name).join(' or ')+' labs to unlock '+(absent.length>1?'those panels':'that panel')+'.</div>':'';
+  const mxh=Math.max(1,...R.help.map(i=>i.mag)),mxd=Math.max(1,...R.hold.map(i=>i.mag));
+  const help=R.help.length?R.help.map(it=>'<div class="dl-item"><div class="dl-name">'+it.n+'</div><div class="dl-bar"><div class="f" style="width:'+Math.round(it.mag/mxh*100)+'%;background:#7C9885"></div></div><div class="dl-val">'+it.v.toFixed(1)+' yr</div></div>').join(''):'<div class="emptyline">Your markers are holding steady — nothing standing out as a strong driver yet.</div>';
+  let hold;
+  if(R.hold.length){
+    hold=R.hold.map(it=>'<div class="dl-item"><div class="dl-name">'+it.n+'</div><div class="dl-bar"><div class="f" style="width:'+Math.round(it.mag/mxd*100)+'%;background:#E2A33C"></div></div><div class="dl-val">'+it.v.toFixed(1)+' yr</div></div>').join('');
+  } else if(R.minorHoldCount>0){
+    hold='<div class="emptyline">A few markers sit a touch off their sweet spot, but only by a little — nothing meaningful to act on right now.</div>';
+  } else {
+    hold='<div class="emptyline">Nothing notably adding age. Nice.</div>';
+  }
+  const fus=R.fus.length?R.fus.map(f=>'<div class="fucard" onclick="goMarkerByName(\''+f.sys+'\',\''+f.k+'\')"><div class="funame">'+f.marker+'</div><div class="fubody">This marker sits outside its typical range — a gentle signal worth raising with your provider.</div><div class="fulink">What this means ›</div></div>').join(''):'<div class="fuempty">Nothing flagged for follow-up — all your markers sit within range.</div>';
+  const heroQual=R.fus.length?'<div class="heroqual" onclick="document.getElementById(\'fublock\').scrollIntoView({behavior:\'smooth\'})"><i>↓</i> '+R.fus.length+' thing'+(R.fus.length>1?'s':'')+' worth a look</div>':'';
+  const hl=present(R.prof).map(k=>({k,z:Math.abs(standardize(k,R.prof[k]))})).sort((a,b)=>b.z-a.z).slice(0,3).map(x=>x.k);
+  const bmPrev=hl.map(k=>bmCard(k)).join('');
+  const confBars=[0,1,2,3].map(i=>'<b style="background:'+(i<Math.round(R.conf.score*4)?'#7C9885':'#ddd8cd')+'"></b>').join('');
+
+  return `
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px 16px">
+    <div class="brand"><svg width="30" height="30" viewBox="0 0 80 80"><path d="M16 22 A30 30 0 1 0 64 22" fill="none" stroke="#3F5B6B" stroke-width="7" stroke-linecap="round"/><path d="M28 30 L40 52 L52 30" fill="none" stroke="#7C9885" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="nm">vitalvault</span></div>
+    <span class="footlink" style="margin:0" onclick="resetTo(welcome())">Start over</span>
+  </div>
+  <div class="hero">
+    <div class="ringlbl">Your biological age</div>
+    <div class="ring-wrap">${ringSVG(baPct,'#3F5B6B',228,14)}<div class="bigage"><div class="num">${Math.round(R.ba.age)}</div><div class="lbl">years</div></div></div>
+    <div class="payoff"><div class="big" style="color:${dt.col}">${dt.big}</div><div class="sub">${dt.sub}</div></div>
+    ${heroQual}
+  </div>
+  <div class="vstrip"><span>VitalScore</span><span class="sc">${compDisp}</span><span class="band" style="${bandStyle(compBand)}">${compBand}</span><span class="dot"></span><span class="bars">${confBars}</span><span style="font-size:12px">${R.ps.length} of 4 panels</span></div>
+
+  <div class="block"><div class="eyebrow">Your systems</div><div class="sysrow">${sysCards}</div>${absentNote}</div>
+
+  <div class="block"><div class="sectit">What's keeping you young</div>
+    <div class="secsub">The markers working in your favor — and where there's room to grow.</div>
+    <div class="drivecol"><div class="drivehdr help"><span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>Working in your favor</div>${help}</div>
+    <div class="drivecol"><div class="drivehdr hold"><span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>Where there's room to grow</div>${hold}</div>
+  </div>
+
+  <div class="block" id="fublock"><div class="sectit">Worth a closer look</div>
+    <div class="secsub">Gentle signals, not diagnoses — small things to bring up at your next visit.</div>${fus}</div>
+
+  <div class="block"><div class="sectit">Your biomarkers</div>
+    <div class="secsub">A few of your markers. Tap any card for the full picture.</div>${bmPrev}
+    <div class="syscard" onclick="goAllMarkers()"><div class="sysedge" style="background:#9DBED0"></div><div class="sysbody" style="justify-content:space-between"><span style="font-size:13.5px;font-weight:600;color:var(--slate)">See all ${present(R.prof).length} of your biomarkers</span><span class="syschev" style="padding-right:0">›</span></div></div>
+  </div>
+
+  <div class="privacy"><div class="privtop" onclick="togglePriv(event)">
+    <div class="privlock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div><div class="privttl">How VitalVault protects this</div><div class="privsub">In the full product, your data stays encrypted</div></div>
+    <div class="privchev" id="pchev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div></div>
+    <div class="privbody" id="pbody"><div class="privledger">
+      <div class="lrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg><span>This demo scores your values <b style="font-weight:600">locally in your browser</b> — nothing is sent anywhere.</span></div>
+      <div class="lrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg><span>In the full product, the server computes on <b style="font-weight:600">encrypted data it cannot read</b>, using fully homomorphic encryption.</span></div>
+      <div class="lrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg><span>That encrypted pipeline was <b style="font-weight:600">verified separately</b> in the backend prototype.</span></div>
+    </div></div></div>
+
+  <div class="foot"><div class="footnote">Local browser demo. Scores are computed in JavaScript using an illustrative model ported from the VitalVault scoring system — not the live FHE pipeline. Not a medical device, not a diagnosis, and ranges are illustrative. Always consult a qualified provider.</div></div>`;
+}
+
+/* ===== biomarker card + panel + marker detail ===== */
+function bmCard(k){const m=M[k];const z=standardize(k,PROFILE[k]);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
+  return '<div class="bm" onclick="goMarker(\''+k+'\')"><div class="bmhead"><div><div class="bmname">'+m[0]+'</div><div class="bmfn">'+m[1]+'</div></div><div class="bmexp">⤢</div></div>'+
+    '<div class="bmval">'+fmtVal(k)+(m[2]?'<small>'+m[2]+'</small>':'')+'</div>'+segBar(zone)+'<div class="bmstat" style="color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</div></div>';}
+function fmtVal(k){const v=PROFILE[k];return (Number.isInteger(v)?v:(+v).toFixed(k==='whtr'?2:1));}
+function goPanel(p){const m=PANEL_META[p];const keys=panelPresent(PROFILE,p);const sc=REPORT.sys[p].disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
+  let cards=keys.map(k=>bmCard(k)).join('');
+  const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">'+m.name+'</span><span class="navspacer"></span></div>'+
+    '<div class="panelhdr"><div class="pdial">'+ringSVG(sc,dc,56,5)+'<div class="pct">'+sc+'</div></div><div><div class="pname">'+m.name+'</div><div class="pmeta">'+keys.length+' markers · '+bandOf(sc)+'</div></div></div>'+cards;
+  render(html,'push');}
+function goAllMarkers(){let html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">All biomarkers</span><span class="navspacer"></span></div>';
+  REPORT.ps.forEach(p=>{html+='<div class="eyebrow" style="margin-top:24px">'+PANEL_META[p].name+'</div>';panelPresent(PROFILE,p).forEach(k=>html+=bmCard(k));});render(html,'push');}
+function goMarker(k){const m=M[k];const z=standardize(k,PROFILE[k]);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
+  const yrs=REPORT.terms[k]||0;const panelName=PANEL_META[m[7]].name;
+  const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' '+panelName+'</button><span class="navtitle">'+m[0]+'</span><span class="navspacer"></span></div>'+
+    '<div class="mdval"><div class="v">'+fmtVal(k)+'</div><div class="u">'+(m[2]||'')+'</div></div>'+
+    '<div class="mdstat"><span class="badge" style="'+(stat==='Optimal'?'background:var(--sage-tint)':stat==='Fair'?'background:var(--slate-tint)':'background:var(--amber-tint)')+';color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</span></div>'+
+    '<div class="mdscale">'+segBar(zone)+'<div class="rangetxt">Typical range <b>'+m[9]+'</b></div></div>'+
+    '<div class="mdsection"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>What this measures</h4><p>'+m[8]+'</p></div>'+
+    '<div class="mdsection"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>How it shapes your results</h4>'+
+      '<div class="contribrow"><span class="cl">Effect on biological age</span><span class="cv" style="color:'+(yrs<=0?'#48624F':'#9A7426')+'">'+(yrs<=0?'−':'+')+Math.abs(yrs).toFixed(2)+' yr</span></div></div>'+
+    '<div class="mdprivacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>In the full product, this value stays on your device — only its encrypted contribution is used.</div>';
+  render(html,'push');}
+function goMarkerByName(sys,k){goPanel(sys);setTimeout(()=>goMarker(k),360);}
+let privOpen=false;function togglePriv(e){e.stopPropagation();privOpen=!privOpen;document.getElementById('pbody').classList.toggle('open',privOpen);document.getElementById('pchev').style.transform=privOpen?'rotate(180deg)':'';}
+
+render(welcome(),'init');
+</script>
