@@ -173,6 +173,15 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);-webkit-font-smoo
 .mdsection h4{font-size:13px;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:7px;}
 .mdsection h4 svg{width:15px;height:15px;color:var(--slate-soft);}
 .mdsection p{font-size:12.5px;color:var(--ink-soft);line-height:1.6;}
+.mdcollapse{background:var(--card);border:1px solid var(--hair);border-radius:16px;margin-bottom:11px;overflow:hidden;}
+.mdcollapse summary{list-style:none;cursor:pointer;padding:15px 18px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.mdcollapse summary::-webkit-details-marker{display:none;}
+.mdcollapse summary svg.lead{width:15px;height:15px;color:var(--slate-soft);flex:none;}
+.mdcollapse summary .chev{margin-left:auto;width:16px;height:16px;color:var(--mist);transition:transform .25s;flex:none;}
+.mdcollapse[open] summary .chev{transform:rotate(180deg);}
+.mdcollapse .inner{padding:0 18px 16px;font-size:12.5px;color:var(--ink-soft);line-height:1.6;}
+.effectpill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 13px;border-radius:20px;margin-top:2px;}
+.effectpill i{font-style:normal;width:7px;height:7px;border-radius:50%;display:inline-block;}
 .contribrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;}
 .contribrow:not(:last-child){border-bottom:1px solid #f3f0ea;}
 .contribrow .cl{font-size:12.5px;color:var(--ink-soft);}
@@ -220,6 +229,7 @@ const spark='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const drop='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>';
 const flower='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 9V4M12 15v5M9 12H4M15 12h5"/></svg>';
 const flame='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 9 13 9 13c-1.5-.5-3-2-3-4 0 0-2 2-2 5a8 8 0 0 0 16 0c0-5-4-8-8-12z"/></svg>';
+const liver='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7c5-2 13-3 18 0 0 5-2 9-7 10-4 .8-8-1-9-4-.6-2-1.5-4-2-6z"/><path d="M8 9c2 1 5 1 7 0"/></svg>';
 
 /* ===== MODEL (ported from constants.py) ===== */
 const Z_CLAMP=3.0, FOLLOWUP_Z=2.0, PENALTY_SCALE=100.0/(Z_CLAMP*Z_CLAMP);
@@ -228,14 +238,15 @@ const CRP_ACUTE_CAP=10.0; // hs-CRP values above this reflect acute response; cl
 const U='u',DL='dl',DH='dh',UW='uw';
 const PENALTY_BASED=new Set([U,UW]);
 const OPTIONAL=new Set(['whtr','insulin']);
-const PANEL_COMPOSITE={core:.28,metabolic:.27,lipid:.22,inflammation:.08,thyroid:.15};
-const PANEL_INFO={core:.36,metabolic:.23,lipid:.18,inflammation:.08,thyroid:.15};
-const PANELS=['core','metabolic','lipid','inflammation','thyroid'];
+const PANEL_COMPOSITE={core:.26,metabolic:.25,lipid:.20,inflammation:.08,liver:.06,thyroid:.15};
+const PANEL_INFO={core:.34,metabolic:.21,lipid:.17,inflammation:.08,liver:.05,thyroid:.15};
+const PANELS=['core','metabolic','lipid','inflammation','liver','thyroid'];
 const PANEL_META={
   core:{name:'Core vitals',glyph:heart,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'},
   metabolic:{name:'Metabolic',glyph:spark,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
   lipid:{name:'Lipids',glyph:drop,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
   inflammation:{name:'Inflammation',glyph:flame,tone:'#9A7426',tint:'#FAF0DC',edge:'#E2A33C'},
+  liver:{name:'Liver',glyph:liver,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
   thyroid:{name:'Thyroid',glyph:flower,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'}
 };
 // key:[label, fn-subtitle, unit, mid, hw, shape, beta, panel, about, rangeText]
@@ -261,6 +272,22 @@ const M={
    optimal:"Many longevity practitioners look for hs-CRP below 1.0 mg/L.",
    influences:"hs-CRP is influenced by recent infections or illness, body composition, smoking, sleep, physical activity, and chronic conditions. It can rise temporarily after intense exercise or injury.",
    caveats:"A single elevated reading often means something temporary — a cold, a recent workout, a minor injury — rather than chronic inflammation. Levels above ~10 mg/L usually point to an acute response and aren’t interpreted the same way as the low-grade range, so VitalVault caps their effect on your score. hs-CRP is best read as a trend across multiple tests rather than from one snapshot. Illustrative and non-diagnostic."
+ }],
+ alt:['ALT','LIVER ENZYME','U/L',22.0,17.0,DL,0.0,'liver','An enzyme found mostly in liver cells; a standard window into liver health.','7–56 U/L',{
+   measures:"ALT (alanine aminotransferase) is an enzyme found mostly in your liver cells. When liver cells are stressed or damaged, ALT leaks into the bloodstream, so it’s used as one window into liver health.",
+   why:"ALT is a standard part of assessing how the liver is doing. Mild elevations are common and often benign, but persistently higher levels can be a sign the liver is under some strain and worth a clinical conversation.",
+   typical:"Roughly 7–56 U/L, though labs vary and ranges differ somewhat by sex and muscle mass.",
+   optimal:"Some longevity clinicians favor the lower end of the normal range (often cited around <30 U/L for men, <25 U/L for women), though “optimal” here is less firmly established than for markers like hs-CRP.",
+   influences:"ALT is influenced by body composition, alcohol intake, certain medications, recent intense exercise, and metabolic health. Muscle activity can nudge it up temporarily.",
+   caveats:"A single mildly elevated ALT is common and frequently not concerning on its own — it’s most meaningful alongside AST and other liver markers, and as a trend. Intense exercise in the days before a test can elevate it temporarily. VitalVault keeps liver enzymes from influencing your biological-age estimate. Illustrative and not a diagnosis of any liver condition."
+ }],
+ ast:['AST','LIVER ENZYME','U/L',22.0,15.0,DL,0.0,'liver','An enzyme found in the liver and other tissues; read alongside ALT.','8–48 U/L',{
+   measures:"AST (aspartate aminotransferase) is an enzyme found in the liver but also in muscle and other tissues. Like ALT, it can rise when liver cells are stressed — but because it’s less liver-specific, it’s read alongside ALT rather than alone.",
+   why:"AST complements ALT in assessing liver health. The two are usually interpreted together; their ratio and trend tell more than either number on its own.",
+   typical:"Roughly 8–48 U/L, with lab and sex variation.",
+   optimal:"Generally the lower-to-middle part of the normal range, interpreted together with ALT.",
+   influences:"AST is influenced by liver health, but also by muscle activity (it’s present in muscle), recent intense exercise, alcohol, and certain medications.",
+   caveats:"Because AST is also found in muscle, a recent hard workout or muscle injury can raise it without anything being wrong with your liver. It’s most meaningful next to ALT and as a trend, not from a single reading. VitalVault keeps liver enzymes from influencing your biological-age estimate. Illustrative and non-diagnostic."
  }],
  tsh:['TSH','THYROID SIGNAL','mIU/L',1.8,1.3,U,0.3,'thyroid','The hormone telling your thyroid how hard to work. Mid-range reflects balance.','0.4–4.0'],
  ft3:['Free T3','ACTIVE THYROID','pg/mL',3.3,0.7,U,0.2,'thyroid','The active thyroid hormone driving metabolism and energy.','2.3–4.2'],
@@ -324,7 +351,10 @@ function confidence(prof){
 function zoneOf(k,z){ // map z to 0..4 segment
   if(z<=-1.8)return 0;if(z<=-0.6)return 1;if(z<0.6)return 2;if(z<1.8)return 3;return 4;
 }
-function markerStat(k,z){return Math.abs(z)>FOLLOWUP_Z?'Worth a look':(Math.abs(z)>1?'Fair':'Optimal');}
+// Status is derived from the SAME zone the scale bar shows, so badge and bar
+// never contradict: center = Optimal, adjacent = Typical, edges = Worth a Look.
+function statForZone(zone){return zone===2?'Optimal':(zone===1||zone===3)?'Typical':'Worth a Look';}
+function markerStat(k,z){return statForZone(zoneOf(k,z));}
 
 /* ===== build the report object the dashboard consumes ===== */
 let PROFILE=null, REPORT=null;
@@ -355,7 +385,7 @@ function ringSVG(pct,color,size,sw,track){const r=(size/2)-sw,c=2*Math.PI*r,off=
   return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="'+(track||'#ECE8E0')+'" stroke-width="'+sw+'"/><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+(size/2)+' '+(size/2)+')"/></svg>';}
 function segBar(zone){const segs=baseZone.map((c,i)=>'<div class="s" style="background:'+(i===zone?activeZone[i]:c)+'"></div>').join('');
   const left=((zone+0.5)/5*100);return '<div class="seg">'+segs+'<div class="tick" style="left:calc('+left+'% - 1px)"></div></div><div class="anchors"><span>Low</span><span class="mid">Optimal</span><span>High</span></div>';}
-function statColor(s){return s==='Optimal'?{c:'#48624F',d:'#7C9885'}:s==='Fair'?{c:'#5E7E92',d:'#9DBED0'}:{c:'#9A7426',d:'#E2A33C'};}
+function statColor(s){return s==='Optimal'?{c:'#48624F',d:'#7C9885'}:s==='Typical'?{c:'#5E7E92',d:'#9DBED0'}:{c:'#9A7426',d:'#E2A33C'};}
 function bandStyle(b){return b==='Good'?'background:var(--sage-tint);color:var(--sage-deep)':b==='Moderate'?'background:var(--amber-tint);color:var(--amber-deep)':'background:#f0e2e0;color:#a3492d';}
 
 /* ===== view stack ===== */
@@ -500,6 +530,7 @@ function step3(){return `
   ${labGroup('metabolic','Metabolic',spark,'#3F5B6B','#EAF0F3',['glucose','a1c','insulin'])}
   ${labGroup('lipid','Lipids',drop,'#3F5B6B','#EAF0F3',['hdl','ldl','tg','tc'])}
   ${labGroup('inflammation','Inflammation',flame,'#9A7426','#FAF0DC',['hscrp'])}
+  ${labGroup('liver','Liver',liver,'#3F5B6B','#EAF0F3',['alt','ast'])}
   ${labGroup('thyroid','Thyroid',flower,'#7C9885','#EDF2EE',['tsh','ft3','ft4'])}
   <button class="btn" onclick="finish()">See my results</button>
   <div class="skip" onclick="finish()">Skip labs — score from vitals only ›</div>`;
@@ -516,13 +547,13 @@ function engineer(raw){
   if(h&&w)p.bmi=+(w/((h/100)*(h/100))).toFixed(2);
   if(waist&&h)p.whtr=+(waist/h).toFixed(4);
   if(raw.activity_ord!=null)p.activity=+(raw.activity_ord/4).toFixed(3);
-  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','hscrp','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
+  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','hscrp','alt','ast','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
   p._sex=raw.sex||null; // collected, unused
   return p;
 }
 function loadSample(){
   formData={age:44,sex:'female',height_cm:168,weight_kg:64,waist_cm:79,activity_ord:3,
-    rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,hscrp:0.8,tsh:2.1,ft3:3.1};
+    rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,hscrp:0.8,alt:24,ast:21,tsh:2.1,ft3:3.1};
   PROFILE=engineer(formData);REPORT=computeReport(PROFILE);resetTo(overview());
 }
 
@@ -624,27 +655,52 @@ function goAllMarkers(){let html='<div class="nav"><button class="back" onclick=
 function goMarker(k){const m=M[k];const z=standardize(k,PROFILE[k]);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
   const yrs=REPORT.terms[k]||0;const panelName=PANEL_META[m[7]].name;
   const C=m[10]; // rich content object, present for piloted markers
+  const badgeBg=stat==='Optimal'?'var(--sage-tint)':stat==='Typical'?'var(--slate-tint)':'var(--amber-tint)';
   const head='<div class="nav"><button class="back" onclick="pop()">'+BACK+' '+panelName+'</button><span class="navtitle">'+m[0]+'</span><span class="navspacer"></span></div>'+
     '<div class="mdval"><div class="v">'+fmtVal(k)+'</div><div class="u">'+(m[2]||'')+'</div></div>'+
-    '<div class="mdstat"><span class="badge" style="'+(stat==='Optimal'?'background:var(--sage-tint)':stat==='Fair'?'background:var(--slate-tint)':'background:var(--amber-tint)')+';color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</span></div>'+
-    '<div class="mdscale">'+segBar(zone)+'<div class="rangetxt">Typical range <b>'+(C?C.typical:m[9])+'</b></div></div>';
+    '<div class="mdstat"><span class="badge" style="background:'+badgeBg+';color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</span></div>'+
+    '<div class="mdscale">'+segBar(zone)+'</div>';
   const ic=(p)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+  const chev='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
   let body;
   if(C){
-    // dynamic "how it affected your score" from zone + bio-age tier
-    const zoneWord=stat==='Optimal'?'in the optimal zone':stat==='Fair'?'a little outside the optimal zone':'outside its typical range';
-    const dirWord=zone>2?'higher than ideal':zone<2?'lower than ideal':'right where you want it';
-    const scoreLine='Your '+m[0]+' of '+fmtVal(k)+' '+(m[2]?m[2]+' ':'')+'is '+zoneWord+(zone!==2?' ('+dirWord+')':'')+', which '+(stat==='Optimal'?'contributes positively to':'slightly lowers')+' your '+panelName+' score.';
-    const bioLine=Math.abs(yrs)<0.005?' It had a negligible effect on your biological-age estimate.':' It factors into your biological-age estimate by '+(yrs<=0?'−':'+')+Math.abs(yrs).toFixed(2)+' yr.';
+    // Favorability is derived from the bio-age TERM SIGN (which already encodes
+    // marker direction): negative term = favorable, positive = unfavorable,
+    // near-zero = neutral. This keeps the score line internally consistent —
+    // a healthy marker never reads as "positive" and "age-increasing" at once.
+    const favorable=yrs<=-0.05, unfavorable=yrs>=0.15;
+    const effect=favorable?{w:'Favorable effect',bg:'var(--sage-tint)',c:'#48624F',d:'#7C9885'}
+                :unfavorable?{w:'Unfavorable effect',bg:'var(--amber-tint)',c:'#9A7426',d:'#E2A33C'}
+                :{w:'Neutral effect',bg:'var(--slate-tint)',c:'#5E7E92',d:'#9DBED0'};
+    // descriptive, badge-consistent score sentence (no signed numbers, no contradiction)
+    let scoreLine;
+    if(stat==='Optimal'){
+      scoreLine='Your '+m[0]+' of '+fmtVal(k)+(m[2]?' '+m[2]:'')+' sits in the optimal range, supporting a healthy '+panelName+' score.';
+    } else if(stat==='Typical'){
+      const dir=zone>2?'toward the higher end of':zone<2?'toward the lower end of':'within';
+      scoreLine='Your '+m[0]+' of '+fmtVal(k)+(m[2]?' '+m[2]:'')+' sits '+dir+' the typical range. It has a modest influence on your '+panelName+' score.';
+    } else {
+      const dir=zone>2?'above':'below';
+      scoreLine='Your '+m[0]+' of '+fmtVal(k)+(m[2]?' '+m[2]:'')+' sits '+dir+' the typical range, which lowered your '+panelName+' score and may be worth a closer look.';
+    }
+    const bioNote=favorable?'Counts in your favor for your biological-age estimate.'
+                 :unfavorable?'Currently adds slightly to your biological-age estimate.'
+                 :'Little to no effect on your biological-age estimate.';
     body=
-      '<div class="mdsection"><h4>'+ic('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>')+'What this measures</h4><p>'+C.measures+'</p></div>'+
-      '<div class="mdsection"><h4>'+ic('<path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/><path d="M9 21h6"/>')+'Why it matters</h4><p>'+C.why+'</p></div>'+
-      '<div class="mdsection"><h4>'+ic('<path d="M3 12h4l3-8 4 16 3-8h4"/>')+'How it affected your score</h4><p>'+scoreLine+bioLine+'</p></div>'+
-      '<div class="mdsection"><h4>'+ic('<path d="M4 7h16M4 12h16M4 17h10"/>')+'Typical &amp; optimal range</h4><p><b style="font-weight:600">Typical:</b> '+C.typical+'<br><b style="font-weight:600">Optimal:</b> '+C.optimal+'</p></div>'+
-      '<div class="mdsection"><h4>'+ic('<path d="M12 3v18M5 10l7-7 7 7"/>')+'What influences it</h4><p>'+C.influences+'</p></div>'+
-      '<div class="mdsection"><h4>'+ic('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>')+'Important caveats</h4><p>'+C.caveats+'</p></div>';
+      '<div class="mdsection"><h4>'+ic('<path d="M3 12h4l3-8 4 16 3-8h4"/>')+'How it affected your results</h4>'+
+        '<p>'+scoreLine+'</p>'+
+        '<div class="effectpill" style="background:'+effect.bg+';color:'+effect.c+'"><i style="background:'+effect.d+'"></i>'+effect.w+'</div>'+
+        '<p style="margin-top:9px">'+bioNote+'</p></div>'+
+      '<div class="mdsection"><h4>'+ic('<path d="M4 7h16M4 12h16M4 17h10"/>')+'Where your value sits</h4>'+
+        '<p><b style="font-weight:600">Typical range:</b> '+C.typical+'<br><b style="font-weight:600">Optimal range:</b> '+C.optimal+'</p></div>'+
+      collapsible(ic('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),'What this measures',C.measures)+
+      collapsible(ic('<path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/><path d="M9 21h6"/>'),'Why it matters',C.why)+
+      collapsible(ic('<path d="M12 3v18M5 10l7-7 7 7"/>'),'What influences it',C.influences)+
+      collapsible(ic('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>'),'Important caveats',C.caveats);
+    function collapsible(icon,title,content){return '<details class="mdcollapse"><summary>'+icon.replace('<svg ','<svg class="lead" ')+title+chev+'</summary><div class="inner">'+content+'</div></details>';}
   } else {
     body=
+      '<div class="mdscale"><div class="rangetxt">Typical range <b>'+m[9]+'</b></div></div>'+
       '<div class="mdsection"><h4>'+ic('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>')+'What this measures</h4><p>'+m[8]+'</p></div>'+
       '<div class="mdsection"><h4>'+ic('<path d="M3 12h4l3-8 4 16 3-8h4"/>')+'How it shapes your results</h4>'+
         '<div class="contribrow"><span class="cl">Effect on biological age</span><span class="cv" style="color:'+(yrs<=0?'#48624F':'#9A7426')+'">'+(yrs<=0?'−':'+')+Math.abs(yrs).toFixed(2)+' yr</span></div></div>';
