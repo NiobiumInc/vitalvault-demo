@@ -67,12 +67,13 @@ class Marker:
     """One biomarker's full illustrative spec (one row of the review table)."""
 
     def __init__(self, key, name, unit, mid, hw, ref_range, shape, beta,
-                 panel, rationale, caveats, illustrative=True):
+                 panel, rationale, caveats, illustrative=True,
+                 sex_specific=False):
         self.key = key            # stable id, fixes slot position in the vector
         self.name = name
         self.unit = unit
-        self.mid = mid            # CONSTRUCTED midpoint
-        self.hw = hw              # CONSTRUCTED half-width
+        self.mid = mid            # CONSTRUCTED midpoint (fallback if sex_specific)
+        self.hw = hw              # CONSTRUCTED half-width (fallback if sex_specific)
         self.ref_range = ref_range  # representative interval (demo summary)
         self.shape = shape
         self.beta = beta          # CONSTRUCTED bio-age years/SD (or years/penalty)
@@ -80,30 +81,40 @@ class Marker:
         self.rationale = rationale
         self.caveats = caveats
         self.illustrative = illustrative
+        # sex_specific markers select their (mid, hw) from SEX_RANGES by the
+        # user's sex; when sex is unavailable they are PRESENT-BUT-UNSCORED
+        # (informational), excluded from scoring/bio-age/scored-confidence.
+        self.sex_specific = sex_specific
 
 
 # ---------------------------------------------------------------------------
 # Panels (order is FIXED — it defines slot layout in the encrypted vector and
 # must never change once frozen, or old ciphertexts/keys become incompatible).
 # ---------------------------------------------------------------------------
-PANELS = ["core", "metabolic", "lipid", "thyroid"]
+PANELS = ["core", "metabolic", "lipid", "inflammation", "liver", "kidney", "thyroid"]
 
 # Panel "information weight" for the data-completeness/confidence score.
 # Reflects how much each panel informs the flagship outputs (Core anchors
 # bio-age and is always present; labs add progressively). NOT medical weight.
 PANEL_INFO_WEIGHT = {
-    "core": 0.40,
-    "metabolic": 0.25,
-    "lipid": 0.20,
+    "core": 0.32,
+    "metabolic": 0.20,
+    "lipid": 0.16,
+    "inflammation": 0.08,
+    "liver": 0.05,
+    "kidney": 0.04,
     "thyroid": 0.15,
 }
 
 # Composite-score panel weights (how panels combine into the overall
 # VitalScore). Renormalized client-side over PRESENT panels only.
 PANEL_COMPOSITE_WEIGHT = {
-    "core": 0.30,
-    "metabolic": 0.30,
-    "lipid": 0.25,
+    "core": 0.24,
+    "metabolic": 0.23,
+    "lipid": 0.19,
+    "inflammation": 0.08,
+    "liver": 0.06,
+    "kidney": 0.05,
     "thyroid": 0.15,
 }
 
@@ -181,6 +192,45 @@ MARKERS = [
            "'<200' = NCEP; mid/hw constructed; very low also flagged (U).",
            "Crude alone; HDL/LDL split more informative."),
 
+    # ---- INFLAMMATION ------------------------------------------------------
+    Marker("hscrp", "hs-CRP", "mg/L", 0.5, 2.5, "<1.0 optimal; <3.0 typical",
+           DIRECTIONAL_LOW, 0.6, "inflammation",
+           "AHA/CDC hs-CRP cardiovascular-risk strata; mid/hw constructed. "
+           "Acute-response cap at 10 mg/L applied before scoring.",
+           "Single reading often transient (infection/exercise); read as a trend. "
+           ">10 mg/L = acute response, capped so it does not dominate."),
+
+    # ---- LIVER -------------------------------------------------------------
+    # ALT/AST: directional-high in RISK (high values penalized). Neutral
+    # bio-age tier (beta=0): mild elevations have weak aging associations, so
+    # they inform the Liver panel score but never move biological age.
+    Marker("alt", "ALT", "U/L", 22.0, 17.0, "~7-56 U/L (lab-dependent)",
+           DIRECTIONAL_LOW, 0.0, "liver",
+           "Common upper-reference ~40-56; mid/hw constructed. beta=0 (neutral tier).",
+           "Mild elevation common/benign; read with AST and as a trend; "
+           "exercise can elevate transiently; sex/muscle-mass dependent."),
+    Marker("ast", "AST", "U/L", 22.0, 15.0, "~8-48 U/L (lab-dependent)",
+           DIRECTIONAL_LOW, 0.0, "liver",
+           "Common upper-reference ~40-48; mid/hw constructed. beta=0 (neutral tier).",
+           "Less liver-specific (also muscle); exercise/muscle injury raises it; "
+           "read with ALT and as a trend."),
+
+    # ---- KIDNEY ------------------------------------------------------------
+    # bio-age tier (beta=0): the related eGFR estimate already incorporates age,
+    # so kidney markers inform the Kidney panel but never move biological age
+    # (avoids age-circularity). SEX-SPECIFIC: creatinine scales with muscle
+    # mass, which differs by sex; mid/hw are selected from SEX_RANGES. The
+    # positional mid/hw here are a neutral fallback only (never used when a
+    # sex basis is present; when sex is absent the marker is informational).
+    Marker("creatinine", "Creatinine", "mg/dL", 0.875, 0.325,
+           "~0.7-1.3 (men), ~0.6-1.1 (women)",
+           DIRECTIONAL_LOW, 0.0, "kidney",
+           "Sex-specific reference ranges; mid/hw selected from SEX_RANGES. "
+           "beta=0 (neutral tier) due to eGFR age-circularity.",
+           "Muscle-mass dependent (sex-specific); hydration/recent exercise "
+           "affect it; most meaningful alongside eGFR.",
+           sex_specific=True),
+
     # ---- THYROID -----------------------------------------------------------
     Marker("tsh", "TSH", "mIU/L", 1.8, 1.3, "~0.4-4.0 (common lab)",
            U_SHAPED, 0.3, "thyroid",
@@ -199,6 +249,48 @@ MARKERS = [
 
 MARKER_BY_KEY = {m.key: m for m in MARKERS}
 
+# ---------------------------------------------------------------------------
+# SEX-SPECIFIC RANGES.  Parallel (mid, hw) per scoring basis, selected by the
+# user's sex. Stored as parallel data + an indicator basis ('male'/'female')
+# so it maps onto an FHE multiplexer (mask-and-combine) if ever ported into
+# the encrypted path; in cleartext this is a simple lookup. When the basis is
+# unavailable ('none'), the marker is present-but-unscored (informational).
+# ALL VALUES ILLUSTRATIVE — to be source-checked in the accuracy pass.
+# ---------------------------------------------------------------------------
+SEX_RANGES = {
+    "creatinine": {
+        "male":   {"mid": 0.95, "hw": 0.35},
+        "female": {"mid": 0.80, "hw": 0.30},
+    },
+}
+
+
+def scoring_basis(sex):
+    """Map a sex value to a scoring basis: 'male' | 'female' | 'none'."""
+    if sex == "male":
+        return "male"
+    if sex == "female":
+        return "female"
+    return "none"  # 'none' / prefer-not-to-say / missing -> informational
+
+
+def is_sex_specific(key):
+    return key in SEX_RANGES
+
+
+def marker_range(key, sex):
+    """Return (mid, hw) for a marker given the user's sex.
+    For sex-specific markers with a valid basis, selects from SEX_RANGES;
+    otherwise returns the marker's positional (mid, hw) fallback."""
+    m = MARKER_BY_KEY[key]
+    if is_sex_specific(key):
+        basis = scoring_basis(sex)
+        if basis != "none" and key in SEX_RANGES and basis in SEX_RANGES[key]:
+            r = SEX_RANGES[key][basis]
+            return r["mid"], r["hw"]
+    return m.mid, m.hw
+
+
 # Markers that are OPTIONAL even when their panel is otherwise provided.
 OPTIONAL_MARKERS = {"whtr", "insulin"}
 
@@ -208,6 +300,7 @@ OPTIONAL_MARKERS = {"whtr", "insulin"}
 Z_CLAMP = 3.0            # clamp standardized deviation to [-3, +3] (client-side);
                          # bounds the Chebyshev domain on the server.
 FOLLOWUP_Z = 2.0         # |z| > 2 -> conservative "discuss with provider" nudge.
+CRP_ACUTE_CAP = 10.0     # hs-CRP > 10 mg/L = acute response; clamp before scoring.
 BIOAGE_MAX_REDUCTION = 8.0   # APPROVED client-side cap: favorable floor (-8 yr).
 BIOAGE_MAX_INCREASE = 10.0   # APPROVED client-side cap: unfavorable ceiling (+10 yr).
                              # Bio-age is the ENGAGING signal; severe outliers are

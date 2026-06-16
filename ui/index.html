@@ -108,6 +108,12 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);-webkit-font-smoo
 .sysglyph{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;}
 .sysglyph svg{width:19px;height:19px;}
 .sysdial{width:44px;height:44px;flex:none;position:relative;}
+.sysdial-track{display:flex;align-items:center;justify-content:center;color:var(--mist);}
+.sysdial-track svg{width:22px;height:22px;}
+.pdial-track{display:flex;align-items:center;justify-content:center;color:var(--mist);background:var(--slate-tint);border-radius:50%;}
+.pdial-track svg{width:26px;height:26px;}
+.refbtn{margin-top:11px;width:100%;padding:11px;border:1px solid var(--mist);background:#EAF0F3;color:#3F5B6B;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.refbtn:active{transform:scale(0.99);}
 .sysdial .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:500;font-family:'Fraunces',serif;}
 .sysinfo{flex:1;min-width:0;}
 .sysname{font-size:14px;font-weight:600;}
@@ -235,6 +241,7 @@ const drop='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 const flower='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 9V4M12 15v5M9 12H4M15 12h5"/></svg>';
 const flame='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 9 13 9 13c-1.5-.5-3-2-3-4 0 0-2 2-2 5a8 8 0 0 0 16 0c0-5-4-8-8-12z"/></svg>';
 const liver='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7c5-2 13-3 18 0 0 5-2 9-7 10-4 .8-8-1-9-4-.6-2-1.5-4-2-6z"/><path d="M8 9c2 1 5 1 7 0"/></svg>';
+const kidney='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3C5 3 4 6 4 9c0 4 2 6 4 6s2-2 2-4 0-3 1-4 2-1 2-2-2-2-5-2z"/><path d="M16 21c3 0 4-3 4-6 0-4-2-6-4-6s-2 2-2 4 0 3-1 4-2 1-2 2 2 2 5 2z"/></svg>';
 
 /* ===== MODEL (ported from constants.py) ===== */
 const Z_CLAMP=3.0, FOLLOWUP_Z=2.0, PENALTY_SCALE=100.0/(Z_CLAMP*Z_CLAMP);
@@ -243,15 +250,16 @@ const CRP_ACUTE_CAP=10.0; // hs-CRP values above this reflect acute response; cl
 const U='u',DL='dl',DH='dh',UW='uw';
 const PENALTY_BASED=new Set([U,UW]);
 const OPTIONAL=new Set(['whtr','insulin']);
-const PANEL_COMPOSITE={core:.26,metabolic:.25,lipid:.20,inflammation:.08,liver:.06,thyroid:.15};
-const PANEL_INFO={core:.34,metabolic:.21,lipid:.17,inflammation:.08,liver:.05,thyroid:.15};
-const PANELS=['core','metabolic','lipid','inflammation','liver','thyroid'];
+const PANEL_COMPOSITE={core:.24,metabolic:.23,lipid:.19,inflammation:.08,liver:.06,kidney:.05,thyroid:.15};
+const PANEL_INFO={core:.32,metabolic:.20,lipid:.16,inflammation:.08,liver:.05,kidney:.04,thyroid:.15};
+const PANELS=['core','metabolic','lipid','inflammation','liver','kidney','thyroid'];
 const PANEL_META={
   core:{name:'Core vitals',glyph:heart,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'},
   metabolic:{name:'Metabolic',glyph:spark,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
   lipid:{name:'Lipids',glyph:drop,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
   inflammation:{name:'Inflammation',glyph:flame,tone:'#9A7426',tint:'#FAF0DC',edge:'#E2A33C'},
   liver:{name:'Liver',glyph:liver,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
+  kidney:{name:'Kidney',glyph:kidney,tone:'#5E7E92',tint:'#EAF0F3',edge:'#9DBED0'},
   thyroid:{name:'Thyroid',glyph:flower,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'}
 };
 // key:[label, fn-subtitle, unit, mid, hw, shape, beta, panel, about, rangeText]
@@ -294,15 +302,201 @@ const M={
    influences:"AST is influenced by liver health, but also by muscle activity (it’s present in muscle), recent intense exercise, alcohol, and certain medications.",
    caveats:"Because AST is also found in muscle, a recent hard workout or muscle injury can raise it without anything being wrong with your liver. It’s most meaningful next to ALT and as a trend, not from a single reading. VitalVault keeps liver enzymes from influencing your biological-age estimate. Illustrative and non-diagnostic."
  }],
+ creatinine:['Creatinine','KIDNEY FILTRATION','mg/dL',0.875,0.325,DL,0.0,'kidney','A muscle-breakdown waste product cleared by the kidneys; a gauge of filtration.','sex-specific',{
+   measures:"Creatinine is a waste product from the normal breakdown of muscle, cleared from your blood by your kidneys. Because healthy kidneys filter it at a steady pace, the amount left circulating is a practical gauge of how well that filtration is working. It’s a core part of standard kidney testing and the main input to the eGFR estimate that often accompanies it.",
+   why:"Creatinine is a foundational kidney marker, most meaningful read together with eGFR. It informs your Kidney system score here. Because the related eGFR calculation already includes age, VitalVault keeps kidney markers from influencing your biological-age estimate — so creatinine shapes your Kidney score without affecting your headline number.",
+   typical:"~0.7–1.3 mg/dL (men), ~0.6–1.1 mg/dL (women).",
+   optimal:"Mid-to-lower part of the sex-appropriate range, read with eGFR.",
+   influences:"Creatinine is strongly influenced by muscle mass (more muscle, higher baseline), as well as hydration, recent intense exercise, meat intake, and certain medications.",
+   caveats:"This is the key nuance: creatinine is muscle-dependent, so a very muscular person can read “high” while being perfectly healthy, and someone with low muscle mass can read deceptively low. Because muscle mass differs by sex, VitalVault interprets creatinine against sex-specific ranges — and needs your sex to score it accurately. It’s a snapshot affected by hydration and recent exercise, and most meaningful alongside eGFR. Illustrative and non-diagnostic."
+ }],
  tsh:['TSH','THYROID SIGNAL','mIU/L',1.8,1.3,U,0.3,'thyroid','The hormone telling your thyroid how hard to work. Mid-range reflects balance.','0.4–4.0'],
  ft3:['Free T3','ACTIVE THYROID','pg/mL',3.3,0.7,U,0.2,'thyroid','The active thyroid hormone driving metabolism and energy.','2.3–4.2'],
  ft4:['Free T4','THYROID RESERVE','ng/dL',1.2,0.4,U,0.2,'thyroid','The thyroid hormone your body converts into its active form.','0.8–1.8']
 };
+
+/* ===== PREMIUM BIOMARKER EDUCATION (approved systems) =====================
+   Presentation-only. Attached to M[k][10] by key below. Adds NO scoring data;
+   never read by any scoring function. Systems: Heart & Body, Metabolic,
+   Lipids. (Inflammation/Liver already carry content.) Thyroid intentionally
+   omitted (content not yet approved -> renders fallback). ================== */
+const BIO_CONTENT={
+ rhr:{
+  measures:"Your resting heart rate is how many times your heart beats per minute when you\u2019re calm and at rest. It\u2019s one of the simplest windows into how hard your heart has to work to keep you going. A lower resting rate generally means your heart is moving more blood with each beat, so it doesn\u2019t need to beat as often \u2014 a hallmark of an efficient, well-conditioned cardiovascular system. People track it because it\u2019s effortless to measure, responds visibly to changes in fitness, stress, and sleep, and offers a daily read on how the body is recovering.",
+  why:"Resting heart rate reflects cardiovascular efficiency and how well your body is handling load, so it tends to track with overall fitness. It\u2019s part of your Heart & Body system and contributes to your estimate as one of the everyday-vitals signals that anchor it even before any lab work \u2014 a small, stable number that carries a lot of information.",
+  typical:"60\u2013100 bpm.",
+  optimal:"~50\u201370 bpm (athletes often lower).",
+  influences:"Resting heart rate is influenced by cardiovascular fitness, stress, sleep quality, hydration, caffeine, certain medications, and even the time of day it\u2019s measured.",
+  caveats:"A single reading is a snapshot \u2014 resting heart rate naturally varies through the day and is best understood as a trend. A genuinely low rate from athletic conditioning looks different from other reasons a rate might be low, which is context a number alone can\u2019t capture. This is an illustrative wellness reading, not a diagnosis."
+ },
+ sbp:{
+  measures:"Systolic blood pressure is the higher of the two blood-pressure numbers \u2014 the force your blood exerts against your artery walls at the moment your heart beats. It reflects the peak pressure in your circulatory system with each heartbeat. It\u2019s one of the most-tracked health metrics in the world because it\u2019s quick, non-invasive, and reflects a system that touches nearly everything in the body \u2014 and because it can drift upward gradually without any obvious signs.",
+  why:"Systolic pressure is a foundational cardiovascular signal and the number that tends to draw the most attention as people age. It\u2019s part of your Heart & Body system and contributes meaningfully to your estimate from the start, read here as an everyday vital \u2014 a stable anchor for the cardiovascular side of your profile.",
+  typical:"Below 120 mmHg.",
+  optimal:"~110\u2013120 mmHg.",
+  influences:"Blood pressure is influenced by stress, physical activity, salt and fluid intake, sleep, caffeine, body composition, certain medications, and even how you\u2019re sitting when it\u2019s measured.",
+  caveats:"Blood pressure fluctuates constantly throughout the day, and a single reading \u2014 especially one taken when you\u2019re rushed or anxious \u2014 can run high without meaning much. It\u2019s best understood from multiple measurements over time. Illustrative and non-diagnostic."
+ },
+ dbp:{
+  measures:"Diastolic blood pressure is the lower of the two numbers \u2014 the pressure in your arteries when your heart rests between beats, refilling with blood. If systolic is the peak, diastolic is the baseline pressure your vessels hold continuously. Together the two describe how hard your cardiovascular system is working both in motion and at rest. People track it alongside systolic because the pair tells more together than either does alone.",
+  why:"Diastolic pressure rounds out the cardiovascular picture, and it\u2019s interpreted together with systolic rather than on its own. It\u2019s part of your Heart & Body system, contributing as one of the everyday vitals that anchor your estimate.",
+  typical:"Below 80 mmHg.",
+  optimal:"~70\u201380 mmHg.",
+  influences:"The same factors that move systolic pressure \u2014 stress, activity, hydration, salt intake, sleep, caffeine, body composition, and medications \u2014 also influence diastolic pressure.",
+  caveats:"Like systolic, diastolic pressure varies moment to moment and is best read as a trend across several measurements. The two numbers don\u2019t always move together, which is one reason they\u2019re interpreted as a pair. Illustrative and non-diagnostic."
+ },
+ bmi:{
+  measures:"BMI is a ratio of your weight to your height \u2014 a quick, standardized number that\u2019s been used for decades as a rough gauge of body size across populations. It\u2019s genuinely useful as a population-level screening tool, which is why it appears on almost every health form. But it\u2019s important to understand what it is: a calculation from just height and weight, not a direct measurement of body fat, fitness, or health. It says nothing about how much of your weight is muscle versus fat, or where that weight sits on your body.",
+  why:"BMI is part of your Heart & Body system as one input among several, contributing to your estimate. It\u2019s most useful here read alongside waist-to-height ratio and your other markers \u2014 the combination is far more informative than BMI alone, which is exactly why VitalVault doesn\u2019t lean on it in isolation.",
+  typical:"18.5\u201324.9.",
+  optimal:"Individual \u2014 composition matters more than the ratio.",
+  influences:"BMI is influenced by muscle mass, body frame, and body-fat distribution \u2014 none of which it can distinguish between. Athletes with significant muscle often register a \u201chigh\u201d BMI despite being very healthy.",
+  caveats:"This is BMI\u2019s central limitation, and it\u2019s a real one: because it can\u2019t tell muscle from fat or account for where weight is carried, it can misclassify muscular people as overweight and can miss body-composition issues in people with a \u201cnormal\u201d reading. It\u2019s a starting point, not a verdict \u2014 best read alongside waist-to-height ratio and the rest of your profile. Illustrative and non-diagnostic."
+ },
+ whtr:{
+  measures:"Waist-to-height ratio is exactly what it sounds like \u2014 your waist circumference divided by your height. It\u2019s a simple measure that gets at something BMI can\u2019t: where your body carries weight. Specifically, it reflects central or abdominal weight, which research has increasingly focused on as more informative than overall body size. A growing number of clinicians consider it one of the more practical at-home measures of body composition, precisely because it captures distribution rather than just amount.",
+  why:"Because it reflects where weight sits rather than just how much, waist-to-height ratio complements BMI and adds real information to the body-composition picture. It\u2019s part of your Heart & Body system and pairs with BMI so the two together tell a fuller story than either alone.",
+  typical:"Under ~0.5.",
+  optimal:"Below 0.5.",
+  influences:"Waist-to-height ratio is influenced by body-fat distribution, overall body composition, and measurement technique \u2014 where and how you measure your waist can shift the number, so consistency matters.",
+  caveats:"The measurement depends on measuring your waist consistently and accurately, which introduces some variability at home. Like all the body-composition markers, it\u2019s one piece of a larger picture and isn\u2019t a diagnosis. Illustrative and educational."
+ },
+ sleep:{
+  measures:"This reflects your typical nightly sleep duration. Sleep is when much of the body\u2019s recovery and regulation happens \u2014 and that\u2019s why it shows up indirectly across so many other markers in your profile. Poor or short sleep tends to nudge resting heart rate up, blunt how the body handles glucose the next day, and raise blood pressure, which means sleep often sits quietly upstream of the cardiovascular and metabolic numbers you\u2019ll see elsewhere. People track it because it\u2019s one of the few daily inputs that influences that many systems at once.",
+  why:"Sleep duration is one of the everyday lifestyle inputs in your Heart & Body system. It\u2019s included less for the hours themselves than for what they connect to \u2014 when a profile shows an elevated resting heart rate or glucose alongside short sleep, the sleep number often helps make sense of the others. It\u2019s context that ties your vitals and labs together.",
+  typical:"7\u20139 hours.",
+  optimal:"~7\u20138 hours (individual needs vary).",
+  influences:"Sleep is influenced by an enormous range of factors \u2014 stress, schedule, light exposure, caffeine and alcohol, environment, and life circumstances among them.",
+  caveats:"Sleep duration is only part of the story \u2014 quality and consistency matter as much as hours, and this captures duration alone. Individual sleep needs vary meaningfully, so the typical range is a general guide rather than a rule. Illustrative and non-diagnostic."
+ },
+ activity:{
+  measures:"This reflects your general physical activity level. Movement is one of the most studied inputs into long-term health because of how broadly it propagates: regular activity tends to lower resting heart rate, improve how the body manages blood sugar and triglycerides, and support healthy blood pressure. In other words, its fingerprint shows up across the cardiovascular, metabolic, and lipid markers elsewhere in your profile rather than staying confined to one system.",
+  why:"Activity level is one of the everyday lifestyle inputs anchoring your Heart & Body system. It earns its place because of how often it\u2019s the common thread behind several other markers at once \u2014 a strong activity level frequently accompanies a favorable resting heart rate and metabolic picture, which is why it\u2019s one of the more connective signals in the model.",
+  typical:"~150 min/week moderate.",
+  optimal:"Consistent movement, sustainably.",
+  influences:"Activity level is influenced by lifestyle, schedule, physical ability, motivation, environment, and circumstance \u2014 it\u2019s one of the more individual and situation-dependent inputs.",
+  caveats:"This is a general, self-reported sense of activity rather than a precise measurement, so it\u2019s best understood as broad context for your profile. It captures overall level, not the type, intensity, or quality of movement. Illustrative and educational."
+ },
+ glucose:{
+  measures:"Fasting glucose is the amount of sugar in your blood after you haven\u2019t eaten for several hours \u2014 your body\u2019s baseline blood-sugar level when it isn\u2019t actively processing a meal. It reflects how well your system keeps blood sugar in a steady range during rest, which is one of the more fundamental signs of metabolic health. Because it\u2019s a single-moment snapshot, it\u2019s most revealing when read alongside A1C, which shows the longer-term trend. People track it as a quick, standard check on blood-sugar regulation.",
+  why:"Fasting glucose is a cornerstone metabolic marker and one of the most established signals in this part of the model. It sits in your Metabolic system and carries real weight in your estimate \u2014 together with A1C and insulin, it forms the most validated cluster for blood-sugar regulation.",
+  typical:"70\u201399 mg/dL (fasting).",
+  optimal:"~75\u201390 mg/dL.",
+  influences:"Fasting glucose is influenced by recent meals, sleep, stress, physical activity, hydration, and the time of your last meal before testing.",
+  caveats:"A single fasting reading is a snapshot and can be thrown off by stress, illness, or an inaccurate fasting window \u2014 which is exactly why it\u2019s read alongside A1C, the longer-term view. Illustrative and non-diagnostic."
+ },
+ a1c:{
+  measures:"A1C reflects your average blood sugar over the past two to three months, rather than at a single moment. It works because glucose in your blood gradually attaches to hemoglobin, the protein in your red blood cells \u2014 and since those cells live about three months, the share of hemoglobin carrying glucose becomes a running average of your recent blood sugar. That\u2019s what makes it more telling than a one-off reading: it smooths out daily ups and downs and reveals the underlying trend. It\u2019s a cornerstone of how clinicians assess long-term glucose control.",
+  why:"Because A1C captures months of glucose regulation in one number, it\u2019s among the more stable and informative markers in the model. It sits in your Metabolic system and carries real weight in your estimate \u2014 alongside fasting glucose and insulin, it anchors the longer-term view of blood-sugar control.",
+  typical:"Below 5.7%.",
+  optimal:"~5.0\u20135.4%.",
+  influences:"A1C is influenced by your average blood sugar over recent months, and also by anything affecting red blood cells \u2014 certain anemias or conditions that change red-cell lifespan can shift it independent of blood sugar.",
+  caveats:"Because A1C depends on red blood cells, conditions affecting those cells can make it read higher or lower than your actual blood sugar would suggest \u2014 one reason it\u2019s interpreted alongside glucose rather than alone. Illustrative and non-diagnostic."
+ },
+ insulin:{
+  measures:"Insulin is the hormone that lets your cells take up glucose from your blood and use it for energy. Measuring it after fasting shows how much insulin your body needs just to hold things steady at baseline. This matters because insulin often shifts before blood sugar does \u2014 when cells start responding less efficiently, the body compensates by producing more insulin to get the same job done, so fasting insulin can surface early changes in metabolic health that glucose alone might not yet show. It\u2019s tested less routinely than glucose or A1C, which is part of why longevity-minded programs value it.",
+  why:"Fasting insulin complements glucose and A1C by reflecting how hard your body is working to keep blood sugar stable, not just the result. It isn\u2019t included in many standard blood panels \u2014 which is part of why longevity-focused programs emphasize it \u2014 and here it rounds out the metabolic picture so the panel reflects insulin signaling and effort, not only the outcome.",
+  typical:"~2\u201325 \u00b5IU/mL (lab-dependent).",
+  optimal:"~2\u20136 \u00b5IU/mL.",
+  influences:"Fasting insulin is influenced by recent diet, body composition, physical activity, sleep, and stress.",
+  caveats:"Reference ranges for fasting insulin vary more between labs than for glucose or A1C, so the number is best read as part of a pattern rather than against a hard cutoff. It\u2019s most informative alongside glucose. Illustrative and non-diagnostic."
+ },
+ hdl:{
+  measures:"HDL is often called the \u201cgood\u201d cholesterol, but it\u2019s more accurate to picture it as your bloodstream\u2019s cleanup crew: these particles travel through your circulation collecting excess cholesterol and carrying it back to your liver for disposal. The more effectively that system works, the less cholesterol lingers in places it shouldn\u2019t. It\u2019s a long-standing part of the standard lipid picture, and people track it because it behaves in the opposite direction from the cholesterol you\u2019re usually told to lower \u2014 here, higher generally reflects a more efficient clearing system.",
+  why:"Healthy HDL is broadly associated with better cardiovascular health, and it\u2019s most informative read together with LDL and triglycerides as a set rather than alone. It sits in your Lipids system and contributes to your estimate as one of the better-established markers in that group.",
+  typical:"Above 40 mg/dL (men), above 50 (women).",
+  optimal:"~50\u201380 mg/dL.",
+  influences:"HDL is influenced by genetics, aerobic fitness, body composition, alcohol intake, smoking, and certain medications. It also tends to differ between men and women, partly due to hormones.",
+  caveats:"HDL is one marker where more isn\u2019t endlessly better \u2014 very high levels (above ~90 mg/dL) don\u2019t appear to add protection and in some studies track with higher risk, so the usual \u201chigher is better\u201d logic breaks down at the top. It\u2019s also most meaningful in the context of your full lipid panel, not in isolation. Illustrative and non-diagnostic."
+ },
+ ldl:{
+  measures:"LDL carries cholesterol outward to your body\u2019s tissues \u2014 the opposite direction from HDL\u2019s return trip. Your cells genuinely need some of this delivery to function, but when more LDL circulates than the body can use, the surplus can gradually accumulate in artery walls over time. That accumulation is why it\u2019s the cholesterol number most people are told to watch, and why it\u2019s among the most-tracked markers in any cardiovascular or longevity context.",
+  why:"LDL is a central cardiovascular marker, and lower levels are generally considered favorable for long-term heart health. It sits in your Lipids system as one of the most studied and reliable signals in the set \u2014 part of why the lipid group carries real weight in your estimate.",
+  typical:"Below 100 mg/dL.",
+  optimal:"Below ~80 mg/dL.",
+  influences:"LDL is influenced by genetics, diet, body composition, physical activity, and certain medications. Genetics play a larger role for some people than lifestyle alone.",
+  caveats:"LDL is one piece of the cardiovascular picture rather than a verdict on its own, and newer markers like ApoB are increasingly used to refine what LDL estimates. For some people, genetics drive LDL more than lifestyle, which a single number can\u2019t convey. Illustrative and non-diagnostic."
+ },
+ tg:{
+  measures:"Triglycerides are the most common type of fat in your blood and the main form in which your body stores and ships energy from food. When you take in more fuel than you immediately need, much of the surplus circulates and is stored as triglycerides. Because of that, blood levels tend to reflect a mix of recent diet, how efficiently your body processes fats and sugars, and overall metabolic health \u2014 which is why they often move in step with glucose and insulin.",
+  why:"Triglycerides are a well-established lipid marker, most meaningful read alongside HDL and the rest of the panel. They sit in your Lipids system and contribute to your estimate \u2014 and because they frequently track with metabolic markers, they\u2019re one of the threads that can connect your lipid and metabolic pictures together.",
+  typical:"Below 150 mg/dL.",
+  optimal:"Below ~100 mg/dL.",
+  influences:"Triglycerides are influenced by recent diet \u2014 especially refined carbohydrates and alcohol \u2014 as well as body composition, physical activity, and the time since your last meal.",
+  caveats:"Triglycerides are particularly sensitive to your most recent meals and alcohol intake, so a non-fasted reading can run notably higher than your baseline. They\u2019re best measured fasting and read as part of the lipid set. Illustrative and non-diagnostic."
+ },
+ tc:{
+  measures:"Total cholesterol is the sum of the cholesterol carried across all your lipid particles \u2014 essentially HDL, LDL, and a portion of your triglyceride-related cholesterol combined into one figure. On its own it\u2019s a broad summary number, which is both its strength and its limitation: it gives a quick overall read, but it can\u2019t show the balance between the types, and that balance often matters more than the total. People track it as a starting point that the more specific lipid markers then refine.",
+  why:"Total cholesterol offers a high-level view of your lipid status, but it\u2019s genuinely most useful broken down into its parts \u2014 which is why VitalVault reads it alongside HDL, LDL, and triglycerides rather than on its own. It sits in your Lipids system as the summary line over a more detailed picture.",
+  typical:"Below 200 mg/dL.",
+  optimal:"Context-dependent \u2014 the HDL/LDL balance matters more than the total.",
+  influences:"Total cholesterol is influenced by everything that moves its components \u2014 genetics, diet, body composition, activity, and medications \u2014 as well as the balance among HDL, LDL, and triglycerides.",
+  caveats:"This is the key limitation: a \u201cgood\u201d or \u201chigh\u201d total can be misleading, because a high total driven by high HDL is very different from the same total driven by high LDL. The breakdown matters more than the sum, which is why total cholesterol is best read as context for the specific markers. Illustrative and non-diagnostic."
+ } ,
+ tsh:{
+  measures:"TSH is the signal your brain sends to your thyroid gland telling it how much thyroid hormone to produce. Here\u2019s the part that trips almost everyone up: TSH moves inversely to your actual thyroid hormone levels. When thyroid hormone runs low, your brain senses the shortfall and raises TSH to push the gland harder \u2014 so a high TSH often points to an under-active thyroid. When thyroid hormone is plentiful, the brain eases off and TSH falls \u2014 so a low TSH can suggest an over-active one. It\u2019s a thermostat, not a thermometer: it reflects the body\u2019s demand signal, not the hormone level itself. That inverse relationship is exactly why TSH is so easy to misread, and why it\u2019s interpreted alongside the actual hormones rather than alone.",
+  why:"TSH is the most common first-line thyroid marker because it\u2019s a sensitive early indicator \u2014 the brain often adjusts the TSH signal before the hormones themselves drift far. It anchors your Thyroid system here, but because of the inverse relationship, it\u2019s most informative read together with Free T3 and Free T4, which show the hormone levels TSH is responding to.",
+  typical:"~0.4\u20134.0 mIU/L.",
+  optimal:"Often cited ~1.0\u20132.5 mIU/L (interpreted with Free T3/T4).",
+  influences:"TSH is influenced by thyroid hormone levels, time of day (it follows a daily rhythm), stress, illness, certain medications, and pregnancy.",
+  caveats:"The inverse direction is the thing to remember: a higher TSH generally points toward an under-active thyroid and a lower TSH toward an over-active one \u2014 the opposite of what most people instinctively assume. TSH also shifts with time of day and temporary illness, so a single reading outside the range isn\u2019t necessarily meaningful on its own. It\u2019s best read alongside Free T3 and Free T4 and as a trend. Illustrative and non-diagnostic."
+ },
+ ft3:{
+  measures:"Free T3 is the active form of thyroid hormone \u2014 the one that actually does the work in your cells, influencing metabolism, energy, and temperature regulation. \u201cFree\u201d means the portion circulating unbound and available for use, rather than attached to carrier proteins. Most of your T3 is produced by converting T4 (the more abundant but less active hormone) into T3, so Free T3 reflects not just how much hormone you make but how well your body activates it. People track it for a more complete picture than TSH alone can give.",
+  why:"Free T3 shows the level of the active hormone your cells are actually using, which adds a layer TSH can\u2019t \u2014 TSH is the demand signal, while Free T3 is part of the supply. It\u2019s part of your Thyroid system and is most informative read together with TSH and Free T4, completing the picture of signal, reserve, and active hormone.",
+  typical:"~2.3\u20134.2 pg/mL (lab-dependent).",
+  optimal:"Mid-to-upper portion of the range, read with TSH and Free T4.",
+  influences:"Free T3 is influenced by thyroid function, how efficiently your body converts T4 to T3, nutrition, stress, illness, and certain medications.",
+  caveats:"Because most T3 comes from converting T4, Free T3 can be affected by factors that influence that conversion \u2014 including illness, stress, and nutrition \u2014 somewhat independently of the thyroid gland itself. Reference ranges vary by lab, so it\u2019s best read as part of the thyroid set rather than against a hard cutoff. Illustrative and non-diagnostic."
+ },
+ ft4:{
+  measures:"Free T4 is the main hormone your thyroid produces and releases into the bloodstream. It\u2019s more abundant than T3 but less active \u2014 it functions largely as a reserve that the body converts into the active T3 form as needed. \u201cFree\u201d refers to the unbound portion available for use rather than bound to carrier proteins. Together with TSH and Free T3, it helps show whether the thyroid is producing an appropriate amount of hormone.",
+  why:"Free T4 reflects the thyroid\u2019s baseline hormone output \u2014 the reserve the body draws on. Read alongside TSH (the demand signal) and Free T3 (the active hormone), it helps distinguish where in the chain something might be shifting. It\u2019s part of your Thyroid system and, like the others, is most meaningful as part of the set rather than in isolation.",
+  typical:"~0.8\u20131.8 ng/dL (lab-dependent).",
+  optimal:"Mid-range, interpreted with TSH and Free T3.",
+  influences:"Free T4 is influenced by thyroid function, certain medications, pregnancy, and significant illness.",
+  caveats:"Free T4 is one piece of the thyroid picture and is interpreted together with TSH and Free T3 \u2014 the relationship among the three is far more informative than any single value. Reference ranges vary by lab. Illustrative and non-diagnostic."
+ }
+};
+Object.keys(BIO_CONTENT).forEach(k=>{ if(M[k]) M[k][10]=BIO_CONTENT[k]; });
+
 const KEYS=Object.keys(M);
 function panelKeys(p){return KEYS.filter(k=>M[k][7]===p);}
 
+/* ===== SEX-SPECIFIC SCORING INFRASTRUCTURE ================================
+   Sex-specific markers carry parallel {mid,hw} ranges selected by a scoring
+   basis derived from the user's sex. Stored as parallel data + indicator
+   (FHE-mux-friendly shape), implemented in cleartext as a lookup. When the
+   basis is unavailable ('none'), the marker is PRESENT-BUT-UNSCORED:
+   informational/reference-only, excluded from scoring, bio-age, and scored
+   confidence — but tracked as recoverable, not treated as missing. */
+const SEX_RANGES={
+  creatinine:{ male:{mid:0.95,hw:0.35}, female:{mid:0.80,hw:0.30} }
+};
+function scoringBasis(sex){ return sex==='male'?'male':sex==='female'?'female':'none'; }
+function isSexSpecific(k){ return !!SEX_RANGES[k]; }
+// scorable = present AND (not sex-specific OR a valid sex basis exists)
+function isScorable(prof,k){
+  if(prof[k]==null||isNaN(prof[k]))return false;
+  if(isSexSpecific(k)){ return scoringBasis(prof.sex)!=='none'; }
+  return true;
+}
+// present-but-unscored: user gave a value we deliberately don't score (yet)
+function isInformational(prof,k){
+  return prof[k]!=null && !isNaN(prof[k]) && !isScorable(prof,k);
+}
+function sexRange(prof,k){
+  const b=scoringBasis(prof.sex);
+  return (b!=='none'&&SEX_RANGES[k]&&SEX_RANGES[k][b])?SEX_RANGES[k][b]:null;
+}
+
 /* ===== SCORING (ported from scoring.py) ===== */
-function standardize(k,v){const m=M[k];if(k==='hscrp'&&v>CRP_ACUTE_CAP)v=CRP_ACUTE_CAP;return Math.max(-Z_CLAMP,Math.min(Z_CLAMP,(v-m[3])/m[4]));}
+function standardize(k,v,prof){
+  const m=M[k];let mid=m[3],hw=m[4];
+  if(isSexSpecific(k)&&prof){ const r=sexRange(prof,k); if(r){mid=r.mid;hw=r.hw;} }
+  if(k==='hscrp'&&v>CRP_ACUTE_CAP)v=CRP_ACUTE_CAP;
+  return Math.max(-Z_CLAMP,Math.min(Z_CLAMP,(v-mid)/hw));
+}
 function penalty(k,z){
   const shape=M[k][5],s=PENALTY_SCALE;
   if(shape===U)return s*z*z;
@@ -316,26 +510,31 @@ function penalty(k,z){
 }
 function present(prof){return KEYS.filter(k=>prof[k]!=null&&!isNaN(prof[k]));}
 function panelPresent(prof,p){return panelKeys(p).filter(k=>prof[k]!=null&&!isNaN(prof[k]));}
+// scorable keys exclude present-but-unscored (informational) markers
+function panelScorable(prof,p){return panelKeys(p).filter(k=>isScorable(prof,k));}
 function presentPanels(prof){return PANELS.filter(p=>panelPresent(prof,p).length>0);}
+// a panel is "scored" only if it has at least one scorable marker
+function scoredPanels(prof){return PANELS.filter(p=>panelScorable(prof,p).length>0);}
 function renormWeights(prof,p){
-  const keys=panelPresent(prof,p);if(!keys.length)return {};
+  const keys=panelScorable(prof,p);if(!keys.length)return {};
   const w={};keys.forEach(k=>w[k]=1/keys.length);return w;
 }
 function systemScoreRaw(prof,p){
   const w=renormWeights(prof,p);const keys=Object.keys(w);if(!keys.length)return null;
-  let pen=0;keys.forEach(k=>{pen+=w[k]*penalty(k,standardize(k,prof[k]));});
+  let pen=0;keys.forEach(k=>{pen+=w[k]*penalty(k,standardize(k,prof[k],prof));});
   return Math.max(0,Math.min(100,100-pen));
 }
 function displayScore(raw){return raw==null?null:DISPLAY_FLOOR+(100-DISPLAY_FLOOR)*(raw/100);}
 function bandOf(v){return v==null?'n/a':v>=80?'Good':v>=60?'Moderate':'Worth reviewing';}
 function compositeRaw(prof){
-  const ps=presentPanels(prof);if(!ps.length)return null;
+  const ps=scoredPanels(prof);if(!ps.length)return null;
   let wsum=0,acc=0;ps.forEach(p=>{const s=systemScoreRaw(prof,p);wsum+=PANEL_COMPOSITE[p];acc+=PANEL_COMPOSITE[p]*s;});
   return acc/wsum;
 }
 function bioageTerms(prof){
   const t={};present(prof).forEach(k=>{
-    const m=M[k],z=standardize(k,prof[k]);
+    if(!isScorable(prof,k))return; // informational markers never contribute to bio-age
+    const m=M[k],z=standardize(k,prof[k],prof);
     if(PENALTY_BASED.has(m[5])){const pen=penalty(k,z);t[k]=m[6]*Math.sqrt(pen/PENALTY_SCALE);}
     else{const signed=(m[5]===DH)?-z:z;t[k]=m[6]*signed;}
   });return t;
@@ -347,25 +546,63 @@ function biologicalAge(prof){
 function confidence(prof){
   let sc=0;PANELS.forEach(p=>{
     const core=panelKeys(p).filter(k=>!OPTIONAL.has(k));
-    const pres=core.filter(k=>prof[k]!=null&&!isNaN(prof[k]));
-    sc+=PANEL_INFO[p]*(core.length?pres.length/core.length:0);
+    // only SCORABLE markers count toward interpreted confidence; a present-but-
+    // unscored marker (e.g. creatinine without sex) contributes nothing here.
+    const scored=core.filter(k=>isScorable(prof,k));
+    sc+=PANEL_INFO[p]*(core.length?scored.length/core.length:0);
   });sc=Math.max(0,Math.min(1,sc));
   const band=sc>=.85?'High':sc>=.6?'Moderate':sc>=.35?'Basic':'Limited';
-  return {score:sc,band:band};
+  // recoverable = values the user provided that we declined to score for lack
+  // of context (distinct from never-provided). Drives "add sex" style prompts.
+  const recoverable=present(prof).filter(k=>isInformational(prof,k))
+    .map(k=>({k,marker:M[k][0],reason:isSexSpecific(k)?'sex':'context'}));
+  return {score:sc,band:band,recoverable:recoverable};
 }
-function zoneOf(k,z){ // map z to 0..4 segment
+/* ===== SHARED THREE-TIER LOGIC (single source of truth) ====================
+   tierOf() returns 'optimal' | 'healthy' | 'worth', oriented by the marker's
+   SHAPE so directional markers color correctly:
+     - U / UW (middle-best): optimal at center, worth at both extremes
+     - DL (lower-is-better): optimal/healthy on the LOW side, worth only when high
+     - DH (higher-is-better): optimal/healthy on the HIGH side, worth only when low
+   Bar, badge, and status all read from this so they cannot contradict.
+   NOTE: scoring untouched — this is presentation only. Amber ("worth a look")
+   is reserved for genuinely outside-optimal-and-healthy; red is intentionally
+   NOT introduced yet (added later with explicit, source-checked thresholds). */
+const TIER_HEALTHY_Z=0.6;   // within this |z| band counts toward optimal/healthy
+const TIER_WORTH_Z=1.6;     // beyond this on the "bad" side = worth a look
+function tierOf(k,z){
+  const shape=M[k][5];
+  if(shape===DL){            // lower is better: bad direction is HIGH (z>0)
+    if(z<=TIER_HEALTHY_Z)return 'optimal';
+    if(z<=TIER_WORTH_Z)return 'healthy';
+    return 'worth';
+  }
+  if(shape===DH){            // higher is better: bad direction is LOW (z<0)
+    if(z>=-TIER_HEALTHY_Z)return 'optimal';
+    if(z>=-TIER_WORTH_Z)return 'healthy';
+    return 'worth';
+  }
+  // U / UW middle-best: optimal near center, worth at either extreme
+  const a=Math.abs(z);
+  if(a<=TIER_HEALTHY_Z)return 'optimal';
+  if(a<=TIER_WORTH_Z)return 'healthy';
+  return 'worth';
+}
+const TIER_LABEL={optimal:'Optimal',healthy:'Healthy',worth:'Worth a Look'};
+function zoneOf(k,z){ // map z to 0..4 segment (POSITION on the bar, not color)
   if(z<=-1.8)return 0;if(z<=-0.6)return 1;if(z<0.6)return 2;if(z<1.8)return 3;return 4;
 }
-// Status is derived from the SAME zone the scale bar shows, so badge and bar
-// never contradict: center = Optimal, adjacent = Typical, edges = Worth a Look.
-function statForZone(zone){return zone===2?'Optimal':(zone===1||zone===3)?'Typical':'Worth a Look';}
-function markerStat(k,z){return statForZone(zoneOf(k,z));}
+function markerStat(k,z){return TIER_LABEL[tierOf(k,z)];}
 
 /* ===== build the report object the dashboard consumes ===== */
 let PROFILE=null, REPORT=null;
 function computeReport(prof){
   const ps=presentPanels(prof);
-  const sys={};ps.forEach(p=>{const raw=systemScoreRaw(prof,p);sys[p]={raw:raw,disp:Math.round(displayScore(raw))};});
+  const sys={};ps.forEach(p=>{
+    const raw=systemScoreRaw(prof,p);
+    if(raw==null){ sys[p]={raw:null,disp:null,tracking:true}; }
+    else { sys[p]={raw:raw,disp:Math.round(displayScore(raw)),tracking:false}; }
+  });
   const ba=biologicalAge(prof);
   const comp=compositeRaw(prof);const conf=confidence(prof);
   // drivers from bioage terms: negative = helping (younger), positive = holding.
@@ -379,18 +616,51 @@ function computeReport(prof){
     else if(y>0.02){ if(y>=MEANINGFUL)hold.push({k,n:M[k][0],v:y,mag:y}); else {minorHold+=y;minorHoldCount++;} }
   });
   help.sort((a,b)=>b.mag-a.mag);hold.sort((a,b)=>b.mag-a.mag);
-  const fus=present(prof).filter(k=>Math.abs(standardize(k,prof[k]))>FOLLOWUP_Z).map(k=>({k,sys:M[k][7],marker:M[k][0]}));
+  const fus=present(prof).filter(k=>isScorable(prof,k)&&Math.abs(standardize(k,prof[k],prof))>FOLLOWUP_Z).map(k=>({k,sys:M[k][7],marker:M[k][0]}));
   return {prof,ps,sys,ba,comp,conf,help:help.slice(0,4),hold:hold.slice(0,4),minorHold,minorHoldCount,fus,terms};
 }
 
 /* ===== helpers ===== */
-const baseZone=['#F2DCDE','#EDE6D6','#DDE8E0','#EDE6D6','#F2DCDE'];
-const activeZone=['#D89A93','#E2A33C','#7C9885','#E2A33C','#D89A93'];
 function ringSVG(pct,color,size,sw,track){const r=(size/2)-sw,c=2*Math.PI*r,off=c*(1-pct/100);
   return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="'+(track||'#ECE8E0')+'" stroke-width="'+sw+'"/><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+(size/2)+' '+(size/2)+')"/></svg>';}
-function segBar(zone){const segs=baseZone.map((c,i)=>'<div class="s" style="background:'+(i===zone?activeZone[i]:c)+'"></div>').join('');
-  const left=((zone+0.5)/5*100);return '<div class="seg">'+segs+'<div class="tick" style="left:calc('+left+'% - 1px)"></div></div><div class="anchors"><span>Low</span><span class="mid">Optimal</span><span>High</span></div>';}
-function statColor(s){return s==='Optimal'?{c:'#48624F',d:'#7C9885'}:s==='Typical'?{c:'#5E7E92',d:'#9DBED0'}:{c:'#9A7426',d:'#E2A33C'};}
+/* Three-tier bar palette. Each of the 5 position-segments is colored by the
+   TIER it represents for this marker's direction, so a low LDL shows green at
+   the left, a high HDL shows green at the right, and middle-best markers show
+   green in the center. Active segment (where the value sits) is saturated. */
+const TIER_BASE={optimal:'#CADBB4',healthy:'#E3EAD7',worth:'#F2E4CC'};
+const TIER_ACTIVE={optimal:'#27500A',healthy:'#9BBF6B',worth:'#E2A33C'};
+const TIER_TEXTCOLOR={optimal:{c:'#27500A',d:'#27500A'},healthy:{c:'#4F6B2E',d:'#9BBF6B'},worth:{c:'#9A7426',d:'#E2A33C'}};
+// For a given marker, map each of the 5 segment positions (0..4 = low..high in
+// VALUE space) to its tier, oriented by shape. Segment i corresponds to a
+// representative z; we classify that z with tierOf so bar matches badge.
+const SEG_Z=[-2.2,-1.1,0,1.1,2.2]; // representative z per segment (low->high)
+function segTiers(k){return SEG_Z.map(z=>tierOf(k,z));}
+// Direction-aware anchor labels under the bar (left / center / right), derived
+// from the marker's shape so the words describe MEANING, not raw position:
+//   lower-is-better (DL): Optimal · Healthy · Elevated   (optimal is the low end)
+//   higher-is-better (DH): Low · Healthy · Optimal        (optimal is the high end)
+//   middle-best (U/UW):    Low · Optimal · High           (optimal is centered)
+function anchorLabels(k){
+  const shape=k?M[k][5]:null;
+  if(shape===DL)return['Optimal','Healthy','Elevated'];
+  if(shape===DH)return['Low','Healthy','Optimal'];
+  return['Low','Optimal','High'];
+}
+function segBar(zone,k){
+  const tiers=k?segTiers(k):['worth','healthy','optimal','healthy','worth'];
+  const segs=tiers.map((t,i)=>{
+    const bg = i===zone ? TIER_ACTIVE[t] : TIER_BASE[t];
+    return '<div class="s" style="background:'+bg+'"></div>';
+  }).join('');
+  const left=((zone+0.5)/5*100);
+  const an=anchorLabels(k);
+  return '<div class="seg">'+segs+'<div class="tick" style="left:calc('+left+'% - 1px)"></div></div><div class="anchors"><span>'+an[0]+'</span><span class="mid">'+an[1]+'</span><span>'+an[2]+'</span></div>';
+}
+function statColor(s){
+  if(s==='Optimal')return TIER_TEXTCOLOR.optimal;
+  if(s==='Healthy / Typical')return TIER_TEXTCOLOR.healthy;
+  return TIER_TEXTCOLOR.worth;
+}
 function bandStyle(b){return b==='Good'?'background:var(--sage-tint);color:var(--sage-deep)':b==='Moderate'?'background:var(--amber-tint);color:var(--amber-deep)':'background:#f0e2e0;color:#a3492d';}
 
 /* ===== view stack ===== */
@@ -424,6 +694,7 @@ function field(key,label,unit,opt,type){
   return '<div class="field"><label>'+lab+'</label>'+inp+'</div>';
 }
 function startForm(){render(step1(),'push');}
+function goStep1(){render(step1(),'push');} // recovery: return to About you to add sex
 /* ===== units: store metric internally, display imperial by default ===== */
 let units={height:'imperial',weight:'imperial',waist:'imperial'};
 const toFixedTrim=(n,d)=>{const v=(+n).toFixed(d);return v.replace(/\.?0+$/,'');};
@@ -483,11 +754,11 @@ function step1(){return `
   ${dots(0)}
   <div class="secsub" style="text-align:center;margin-bottom:22px">A few basics to anchor your results.</div>
   ${field('age','Age','years',false)}
-  <div class="field"><label>Sex <span class="opt">· not used in scoring yet</span></label>
+  <div class="field"><label>Sex <span class="opt">· used to interpret some markers</span></label>
     <div class="seg-input" id="sexseg">
       <button onclick="pickSex(this,'female')" class="${formData.sex==='female'?'sel':''}">Female</button>
       <button onclick="pickSex(this,'male')" class="${formData.sex==='male'?'sel':''}">Male</button>
-      <button onclick="pickSex(this,'other')" class="${formData.sex==='other'?'sel':''}">Other</button>
+      <button onclick="pickSex(this,'none')" class="${formData.sex==='none'?'sel':''}">Prefer not to say</button>
     </div></div>
   <div id="bodyfields">${bodyFields()}</div>
   <div class="err" id="err1">Please enter age, height, and weight to continue.</div>
@@ -536,6 +807,7 @@ function step3(){return `
   ${labGroup('lipid','Lipids',drop,'#3F5B6B','#EAF0F3',['hdl','ldl','tg','tc'])}
   ${labGroup('inflammation','Inflammation',flame,'#9A7426','#FAF0DC',['hscrp'])}
   ${labGroup('liver','Liver',liver,'#3F5B6B','#EAF0F3',['alt','ast'])}
+  ${labGroup('kidney','Kidney',kidney,'#5E7E92','#EAF0F3',['creatinine'])}
   ${labGroup('thyroid','Thyroid',flower,'#7C9885','#EDF2EE',['tsh','ft3','ft4'])}
   <button class="btn" onclick="finish()">See my results</button>
   <div class="skip" onclick="finish()">Skip labs — score from vitals only ›</div>`;
@@ -552,13 +824,13 @@ function engineer(raw){
   if(h&&w)p.bmi=+(w/((h/100)*(h/100))).toFixed(2);
   if(waist&&h)p.whtr=+(waist/h).toFixed(4);
   if(raw.activity_ord!=null)p.activity=+(raw.activity_ord/4).toFixed(3);
-  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','hscrp','alt','ast','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
-  p._sex=raw.sex||null; // collected, unused
+  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','hscrp','alt','ast','creatinine','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
+  p.sex=raw.sex||null; // now load-bearing: selects sex-specific marker ranges (creatinine, hormones)
   return p;
 }
 function loadSample(){
   formData={age:44,sex:'female',height_cm:168,weight_kg:64,waist_cm:79,activity_ord:3,
-    rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,hscrp:0.8,alt:24,ast:21,tsh:2.1,ft3:3.1};
+    rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,hscrp:0.8,alt:24,ast:21,creatinine:0.82,tsh:2.1,ft3:3.1};
   PROFILE=engineer(formData);REPORT=computeReport(PROFILE);resetTo(overview());
 }
 
@@ -568,94 +840,107 @@ function deltaText(d){const a=Math.abs(d);
   if(d<0)return{big:Math.round(a)+(Math.round(a)===1?' year':' years')+' younger',sub:'than your actual age of '+REPORT.prof.age,col:'var(--sage-deep)'};
   return{big:Math.round(a)+(Math.round(a)===1?' year':' years')+' above',sub:'your actual age of '+REPORT.prof.age,col:'var(--amber-deep)'};}
 
-/* ===== YOUR LONGEVITY STORY — six deterministic slots =====================
-   Each slot is a pure function of the report. Fixed sentence templates; only
-   values and system/marker names are interpolated. No prediction, causation,
-   recommendation, or condition names. Conditional slots skip silently. ======*/
-const STORY_STRONG=85, STORY_REVIEW=70, STORY_SPREAD=10, STORY_DRIVER_MIN=0.5;
-function panelDisp(R,p){return R.sys[p]?R.sys[p].disp:null;}
+/* ===== YOUR LONGEVITY STORY — insight-first, deterministic ================
+   Pure function of the report. Explains WHY the estimate landed where it did
+   (netting of bio-age terms), surfaces cross-system clustering and tension,
+   and notes what is distinctive WITHIN the profile. Fixed templates; only
+   values/names interpolated. Describes the MODEL ARITHMETIC, never the user's
+   physiology or future. No prediction, body-causation, recommendation, or
+   condition names. Every sentence must add what the cards cannot show.
+   Target 2-4 short paragraphs. ========================================= */
+const STORY_DRIVER_MIN=0.5;
+const STORY_NET_CLEAR=2.0;
+const METAB_CLUSTER=new Set(['glucose','a1c','insulin','tg','hdl','ldl','tc','hscrp','bmi','whtr']);
+const CARDIO_SET=new Set(['rhr','sbp','dbp']);
 function longevityStory(R){
-  const out=[];const age=R.prof.age;const bio=Math.round(R.ba.age);const d=R.ba.delta;const a=Math.abs(d);
-  const yr=(n)=>n===1?'year':'years';
+  const out=[];const age=R.prof.age;const bio=Math.round(R.ba.age);const d=R.ba.delta;const a=Math.abs(d);const yr=(n)=>n===1?'year':'years';
+  const terms=R.terms;const down=[],up=[];let downSum=0,upSum=0;
+  Object.keys(terms).forEach(k=>{const y=terms[k];
+    if(y<0){downSum+=-y; if(-y>=0.15)down.push({k,n:M[k][0],mag:-y});}
+    else if(y>0){upSum+=y; if(y>=0.15)up.push({k,n:M[k][0],mag:y});}});
+  down.sort((x,y)=>y.mag-x.mag);up.sort((x,y)=>y.mag-x.mag);
+  const present=R.ps.map(p=>({p,name:PANEL_META[p].name,disp:R.sys[p]?R.sys[p].disp:null})).filter(x=>x.disp!=null);
+  const names=(arr,n)=>listJoin(arr.slice(0,n).map(x=>x.n));
+  const RSQUO=String.fromCharCode(8217);
+  // "tension" = both directions carry real weight relative to the net result
+  const bothSidesReal = downSum>=0.75 && upSum>=0.75;
 
-  // Slot 1 — bio-age frame (always)
-  let s1;
-  if(a<1) s1='Your biological age is estimated at '+bio+', right around your actual age of '+age+'.';
-  else if(d<0) s1='Your biological age is estimated at '+bio+', which is '+Math.round(a)+' '+yr(Math.round(a))+' below your actual age of '+age+'.';
-  else s1='Your biological age is estimated at '+bio+', which is '+Math.round(a)+' '+yr(Math.round(a))+' above your actual age of '+age+'.';
-  s1+=' This is an illustrative estimate built from the markers you entered — a descriptive snapshot, not a clinical measurement or prediction.';
-  out.push(s1);
-
-  // Slot 2 — bio-age drivers (conditional; threshold-gated; direction follows delta)
-  const younger=d<0;
-  const drivers=Object.keys(R.terms)
-    .map(k=>({k,n:M[k][0],term:R.terms[k]}))
-    .filter(x=>younger?x.term<=-STORY_DRIVER_MIN:x.term>=STORY_DRIVER_MIN)
-    .sort((x,y)=>Math.abs(y.term)-Math.abs(x.term))
-    .slice(0,3);
-  if(Math.abs(d)>=1 && drivers.length){
-    const names=listJoin(drivers.map(x=>x.n));
-    out.push('The markers contributing most to your '+(younger?'younger':'higher')+' estimate were '+names+'.');
-  }
-
-  // Slot 3 — strengths (always; never claims "strong" if nothing qualifies)
-  const present=R.ps.map(p=>({p,name:PANEL_META[p].name,disp:panelDisp(R,p)})).filter(x=>x.disp!=null);
-  const strong=present.filter(x=>x.disp>=STORY_STRONG).sort((a,b)=>b.disp-a.disp).slice(0,3);
-  if(strong.length>=2){
-    out.push('Your strongest areas right now are '+listJoin(strong.map(x=>x.name))+' — these systems’ markers are sitting in healthy ranges.');
-  } else if(strong.length===1){
-    out.push('Your strongest area right now is '+strong[0].name+', with markers sitting in healthy ranges.');
-  } else if(present.length){
-    const top=present.slice().sort((a,b)=>b.disp-a.disp)[0];
-    out.push('Your steadiest area in this set is '+top.name+'.');
-  }
-
-  // Slot 4 — attention (conditional; skipped if nothing qualifies; capped & calm)
-  const fuSorted=R.fus.slice().sort((x,y)=>Math.abs(standardize(y.k,R.prof[y.k]))-Math.abs(standardize(x.k,R.prof[x.k])));
-  const fuTop=fuSorted.slice(0,3).map(f=>f.marker);
-  const fuExtra=fuSorted.length-fuTop.length;
-  const lowSys=present.filter(x=>x.disp<STORY_REVIEW).sort((a,b)=>a.disp-b.disp);
-  let s4=null;
-  if(fuTop.length){
-    const tail=fuExtra>0?', along with a few others':'';
-    const one=fuTop.length===1&&fuExtra===0;
-    s4=(one?'One marker sits':'A few markers sit')+' outside '+(one?'its':'their')+' typical range — '+listJoin(fuTop)+tail+' — which may be worth discussing with a provider.';
-  } else if(lowSys.length){
-    s4='Your '+lowSys[0].name+' score is lower than your others, which may be worth keeping an eye on.';
-  }
-  if(s4)out.push(s4);
-
-  // Slot 5 — themes (conditional; at most one; only if condition clearly fires)
-  if(present.length>=2){
-    const scores=present.map(x=>x.disp);const hi=Math.max(...scores),lo=Math.min(...scores);
-    let theme=null;
-    // "consistent steady" only when the estimate itself isn't notably elevated,
-    // so it never contradicts a higher-bio-age driver slot.
-    if(lo>=STORY_STRONG && (hi-lo)<STORY_SPREAD && d<2){
-      theme='Across the systems you’ve entered, your markers tell a consistent, steady story.';
-    } else if(strong.length && (lowSys.length || R.fus.length)){
-      theme='Your profile is a mix — some systems sitting strong while others have a marker or two outside their range.';
-    } else {
-      const core=present.find(x=>x.p==='core');
-      const labs=present.filter(x=>['metabolic','lipid','inflammation','liver','thyroid'].includes(x.p));
-      if(core&&labs.length){
-        const labAvg=labs.reduce((s,x)=>s+x.disp,0)/labs.length;
-        if(core.disp-labAvg>=STORY_SPREAD) theme='Your everyday-vitals markers are tracking stronger than your lab markers in this snapshot.';
-        else if(labAvg-core.disp>=STORY_SPREAD) theme='Your lab markers are tracking stronger than your everyday-vitals markers in this snapshot.';
-      }
-    }
-    if(theme)out.push(theme);
-  }
-
-  // Slot 6 — completeness (always)
-  const total=PANELS.length;const n=R.ps.length;
-  const absent=PANELS.filter(p=>!R.ps.includes(p)).map(p=>PANEL_META[p].name);
-  if(n>=total){
-    out.push('This story reflects all '+total+' systems you can enter — a fairly complete picture.');
-  } else if(n<=2){
-    out.push('This is an early snapshot based on '+n+' system'+(n===1?'':'s')+'. The more you add, the more complete and reliable the picture becomes.');
+  // ---- SPINE: explain the estimate via netting ----
+  if(present.length<=1 || (down.length===0&&up.length===0&&downSum<0.5&&upSum<0.5)){
+    out.push('Your biological age estimate of '+bio+' lands '+(a<1?'close to':a.toFixed(0)+' '+yr(Math.round(a))+(d<0?' below':' above'))+' your actual age of '+age+'.');
+  } else if(bothSidesReal&&a<STORY_NET_CLEAR){
+    // TENSION: both directions carry weight and they roughly cancel
+    const dn=down.length?names(down,2):'several favorable markers';
+    const u=up.length?names(up,2):'several less-favorable markers';
+    out.push('Your biological age estimate of '+bio+' lands close to your actual age of '+age+' because two forces are roughly cancelling out: '+dn+' '+(down.length>1?'are':'is')+' pulling it younger, while '+u+' '+(up.length>1?'are':'is')+' pushing it older.');
+  } else if(d<0){
+    const lead=down.length?names(down,3):'a broad set of markers sitting in healthy ranges';
+    const tail=upSum>=0.75&&up.length?' The main thing pulling the other way is '+up[0].n+', though it doesn'+RSQUO+'t offset them.':' Little of weight is pulling in the other direction.';
+    out.push('Your biological age estimate of '+bio+' lands '+(a<1?'just below':a.toFixed(0)+' '+yr(Math.round(a))+' below')+' your actual age of '+age+', driven mostly by '+lead+'.'+tail);
   } else {
-    out.push('This story is based on '+n+' of '+total+' systems. Adding '+listJoin(absent)+' would give a fuller picture.');
+    const lead=up.length?names(up,3):'a broad set of markers sitting above their optimal range';
+    const tail=downSum>=0.75&&down.length?' Working the other way, '+down[0].n+' is pulling the estimate younger, but it doesn'+RSQUO+'t fully offset the rest.':'';
+    out.push('Your biological age estimate of '+bio+' lands '+(a<1?'just above':a.toFixed(0)+' '+yr(Math.round(a))+' above')+' your actual age of '+age+', driven mostly by '+lead+'.'+tail);
+  }
+
+  // ---- CROSS-SYSTEM pattern: clustering or tension (conditional) ----
+  let pattern=null;
+  const dominant=(a>=STORY_NET_CLEAR)?(d<0?down:up):null;
+  if(dominant&&dominant.length>=2){
+    const keys=dominant.slice(0,3).map(x=>x.k);
+    if(keys.filter(k=>METAB_CLUSTER.has(k)).length>=2){
+      pattern='Several of these are related metabolic signals rather than independent ones, so they move together and reinforce each other in the estimate — part of why the gap is as large as it is.';
+    }
+  }
+  if(!pattern && bothSidesReal){
+    const downCardio=down.slice(0,3).some(x=>CARDIO_SET.has(x.k));
+    const upCardio=up.slice(0,3).some(x=>CARDIO_SET.has(x.k));
+    const downMetab=down.slice(0,3).some(x=>METAB_CLUSTER.has(x.k));
+    const upMetab=up.slice(0,3).some(x=>METAB_CLUSTER.has(x.k));
+    if((downMetab&&upCardio)||(downCardio&&upMetab)){
+      const strongSide=downMetab&&upCardio?'metabolic':'cardiovascular';
+      const weakSide=downMetab&&upCardio?'cardiovascular':'metabolic';
+      pattern='The split between your '+strongSide+' markers and your '+weakSide+' markers is the most distinctive part of your profile — the two are pointing in different directions.';
+    } else if(a<STORY_NET_CLEAR){
+      pattern='That tension between opposing markers — rather than everything sitting in one place — is what defines the shape of your result.';
+    }
+  }
+  if(pattern)out.push(pattern);
+
+  // ---- CONCENTRATION (strong, tension-free profiles): explain HOW the
+  // favorable pull is distributed — one dominant / a few major / many small.
+  // Only when the estimate is favorably below age, no cross-system pattern
+  // fired, and there will be no attention item. Card-invisible insight. ----
+  const willHaveAttention=R.fus.length>0;
+  if(!pattern && d<0 && downSum>=0.75 && !willHaveAttention){
+    const sorted=down.slice().sort((x,y)=>y.mag-x.mag);
+    const topShare=sorted.length?sorted[0].mag/downSum:0;
+    const top2Share=sorted.length>=2?(sorted[0].mag+sorted[1].mag)/downSum:topShare;
+    let conc;
+    if(topShare>=0.55){
+      conc='Most of that comes from a single standout — '+sorted[0].n+' is doing the bulk of the work here.';
+    } else if(top2Share>=0.7 && sorted.length>=2){
+      conc='That advantage rests mainly on a couple of standouts — '+sorted[0].n+' and '+sorted[1].n+' — rather than being spread evenly.';
+    } else {
+      conc='Rather than any single standout, it'+RSQUO+'s a number of markers each contributing a little, adding up in your favor.';
+    }
+    out.push(conc);
+  }
+
+  // ---- ATTENTION (conditional, capped, calm) ----
+  const fuSorted=R.fus.slice().sort((x,y)=>Math.abs(standardize(y.k,R.prof[y.k],R.prof))-Math.abs(standardize(x.k,R.prof[x.k],R.prof)));
+  const fuTop=fuSorted.slice(0,3).map(f=>f.marker);const fuExtra=fuSorted.length-fuTop.length;
+  if(fuTop.length){
+    const tail=fuExtra>0?', along with a few others':'';const one=fuTop.length===1&&fuExtra===0;
+    out.push((one?'One marker sits':'A few markers sit')+' outside '+(one?'its':'their')+' typical range — '+listJoin(fuTop)+tail+' — which may be worth discussing with a provider.');
+  }
+
+  // ---- COMPLETENESS (only when it materially limits the read) ----
+  const n=R.ps.length;
+  if(n<=2){
+    const carriers=present.length?panelPresent(R.prof,present[0].p).slice(0,2).map(k=>M[k][0]):[];
+    if(carriers.length) out.push('This estimate is based only on your everyday vitals so far — with no lab markers yet, it'+RSQUO+'s resting almost entirely on '+listJoin(carriers)+'.');
+    else out.push('This is an early snapshot — the more systems you add, the more grounded the estimate becomes.');
   }
   return out;
 }
@@ -666,11 +951,17 @@ function overview(){
   const compDisp=Math.round(displayScore(R.comp));const compBand=bandOf(displayScore(R.comp));
   let sysCards='';
   const FOUNDATIONAL=['core','metabolic','lipid'];
-  const cardFor=(p)=>{const m=PANEL_META[p];const sc=R.sys[p].disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
-    const np=panelPresent(R.prof,p).length;
+  const cardFor=(p)=>{const m=PANEL_META[p];const S=R.sys[p];const np=panelPresent(R.prof,p).length;
+    if(S.tracking){
+      return '<div class="syscard" onclick="goPanel(\''+p+'\')"><div class="sysedge" style="background:'+m.edge+'"></div><div class="sysbody">'+
+        '<div class="sysglyph" style="background:'+m.tint+';color:'+m.tone+'">'+m.glyph+'</div>'+
+        '<div class="sysdial sysdial-track">'+m.glyph+'</div>'+
+        '<div class="sysinfo"><div class="sysname">'+m.name+'</div><div class="syssum">'+np+' marker'+(np>1?'s':'')+' · Tracking — needs context</div></div></div><div class="syschev">›</div></div>';
+    }
+    const sc=S.disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
     return '<div class="syscard" onclick="goPanel(\''+p+'\')"><div class="sysedge" style="background:'+m.edge+'"></div><div class="sysbody">'+
       '<div class="sysglyph" style="background:'+m.tint+';color:'+m.tone+'">'+m.glyph+'</div><div class="sysdial">'+ringSVG(sc,dc,44,4)+'<div class="pct">'+sc+'</div></div>'+
-      '<div class="sysinfo"><div class="sysname">'+m.name+'</div><div class="syssum">'+np+' marker'+(np>1?'s':'')+' · '+bandOf(R.sys[p].disp)+'</div></div></div><div class="syschev">›</div></div>';};
+      '<div class="sysinfo"><div class="sysname">'+m.name+'</div><div class="syssum">'+np+' marker'+(np>1?'s':'')+' · '+bandOf(sc)+'</div></div></div><div class="syschev">›</div></div>';};
   const foundPresent=R.ps.filter(p=>FOUNDATIONAL.includes(p));
   const deepPresent=R.ps.filter(p=>!FOUNDATIONAL.includes(p));
   foundPresent.forEach(p=>{sysCards+=cardFor(p);});
@@ -692,7 +983,7 @@ function overview(){
   }
   const fus=R.fus.length?R.fus.map(f=>'<div class="fucard" onclick="goMarkerByName(\''+f.sys+'\',\''+f.k+'\')"><div class="funame">'+f.marker+'</div><div class="fubody">This marker sits outside its typical range — a gentle signal worth raising with your provider.</div><div class="fulink">What this means ›</div></div>').join(''):'<div class="fuempty">Nothing flagged for follow-up — all your markers sit within range.</div>';
   const heroQual=R.fus.length?'<div class="heroqual" onclick="document.getElementById(\'fublock\').scrollIntoView({behavior:\'smooth\'})"><i>↓</i> '+R.fus.length+' thing'+(R.fus.length>1?'s':'')+' worth a look</div>':'';
-  const hl=present(R.prof).map(k=>({k,z:Math.abs(standardize(k,R.prof[k]))})).sort((a,b)=>b.z-a.z).slice(0,3).map(x=>x.k);
+  const hl=present(R.prof).filter(k=>isScorable(R.prof,k)).map(k=>({k,z:Math.abs(standardize(k,R.prof[k],R.prof))})).sort((a,b)=>b.z-a.z).slice(0,3).map(x=>x.k);
   const bmPrev=hl.map(k=>bmCard(k)).join('');
   const confBars=[0,1,2,3].map(i=>'<b style="background:'+(i<Math.round(R.conf.score*4)?'#7C9885':'#ddd8cd')+'"></b>').join('');
 
@@ -744,27 +1035,62 @@ function overview(){
 }
 
 /* ===== biomarker card + panel + marker detail ===== */
-function bmCard(k){const m=M[k];const z=standardize(k,PROFILE[k]);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
+function bmCard(k){const m=M[k];
+  if(isInformational(PROFILE,k)){
+    return '<div class="bm" onclick="goMarker(\''+k+'\')"><div class="bmhead"><div><div class="bmname">'+m[0]+'</div><div class="bmfn">'+m[1]+'</div></div><div class="bmexp">⤢</div></div>'+
+      '<div class="bmval">'+fmtVal(k)+(m[2]?'<small>'+m[2]+'</small>':'')+'</div>'+
+      '<div class="bmstat" style="color:#5E7E92"><i style="background:#9DBED0"></i>Shown for reference</div></div>';
+  }
+  const z=standardize(k,PROFILE[k],PROFILE);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
   return '<div class="bm" onclick="goMarker(\''+k+'\')"><div class="bmhead"><div><div class="bmname">'+m[0]+'</div><div class="bmfn">'+m[1]+'</div></div><div class="bmexp">⤢</div></div>'+
-    '<div class="bmval">'+fmtVal(k)+(m[2]?'<small>'+m[2]+'</small>':'')+'</div>'+segBar(zone)+'<div class="bmstat" style="color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</div></div>';}
+    '<div class="bmval">'+fmtVal(k)+(m[2]?'<small>'+m[2]+'</small>':'')+'</div>'+segBar(zone,k)+'<div class="bmstat" style="color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</div></div>';}
 function fmtVal(k){const v=PROFILE[k];return (Number.isInteger(v)?v:(+v).toFixed(k==='whtr'?2:1));}
-function goPanel(p){const m=PANEL_META[p];const keys=panelPresent(PROFILE,p);const sc=REPORT.sys[p].disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
+function goPanel(p){const m=PANEL_META[p];const keys=panelPresent(PROFILE,p);const S=REPORT.sys[p];
   let cards=keys.map(k=>bmCard(k)).join('');
-  const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">'+m.name+'</span><span class="navspacer"></span></div>'+
-    '<div class="panelhdr"><div class="pdial">'+ringSVG(sc,dc,56,5)+'<div class="pct">'+sc+'</div></div><div><div class="pname">'+m.name+'</div><div class="pmeta">'+keys.length+' markers · '+bandOf(sc)+'</div></div></div>'+cards;
+  let hdr;
+  if(S.tracking){
+    hdr='<div class="panelhdr"><div class="pdial pdial-track">'+m.glyph+'</div><div><div class="pname">'+m.name+'</div><div class="pmeta">'+keys.length+' marker'+(keys.length>1?'s':'')+' · needs context to score</div></div></div>';
+  } else {
+    const sc=S.disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
+    hdr='<div class="panelhdr"><div class="pdial">'+ringSVG(sc,dc,56,5)+'<div class="pct">'+sc+'</div></div><div><div class="pname">'+m.name+'</div><div class="pmeta">'+keys.length+' markers · '+bandOf(sc)+'</div></div></div>';
+  }
+  const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">'+m.name+'</span><span class="navspacer"></span></div>'+hdr+cards;
   render(html,'push');}
 function goAllMarkers(){let html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">All biomarkers</span><span class="navspacer"></span></div>';
   REPORT.ps.forEach(p=>{html+='<div class="eyebrow" style="margin-top:24px">'+PANEL_META[p].name+'</div>';panelPresent(PROFILE,p).forEach(k=>html+=bmCard(k));});render(html,'push');}
-function goMarker(k){const m=M[k];const z=standardize(k,PROFILE[k]);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
-  const yrs=REPORT.terms[k]||0;const panelName=PANEL_META[m[7]].name;
-  const C=m[10]; // rich content object, present for piloted markers
-  const badgeBg=stat==='Optimal'?'var(--sage-tint)':stat==='Typical'?'var(--slate-tint)':'var(--amber-tint)';
+function goMarker(k){const m=M[k];const panelName=PANEL_META[m[7]].name;const C=m[10];
+  const ic=(p)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+  const chev='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+  // PRESENT-BUT-UNSCORED (informational): value shown for reference, explained,
+  // with a recovery prompt — no score, no scale, no bio-age effect.
+  if(isInformational(PROFILE,k)){
+    const reason = isSexSpecific(k)
+      ? 'Creatinine is interpreted differently by sex, so we need your sex to score it accurately. Your value is shown here for reference.'
+      : 'This marker needs more context to interpret, so it’s shown here for reference rather than scored.';
+    const collapsibleI=(icon,title,content)=>'<details class="mdcollapse"><summary>'+icon.replace('<svg ','<svg class="lead" ')+title+chev+'</summary><div class="inner">'+content+'</div></details>';
+    let edu='';
+    if(C){
+      edu=collapsibleI(ic('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),'What this measures',C.measures)+
+          collapsibleI(ic('<path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/><path d="M9 21h6"/>'),'Why it matters',C.why)+
+          collapsibleI(ic('<path d="M12 3v18M5 10l7-7 7 7"/>'),'What influences it',C.influences)+
+          collapsibleI(ic('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>'),'Important caveats',C.caveats);
+    }
+    const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' '+panelName+'</button><span class="navtitle">'+m[0]+'</span><span class="navspacer"></span></div>'+
+      '<div class="mdval"><div class="v">'+fmtVal(k)+'</div><div class="u">'+(m[2]||'')+'</div></div>'+
+      '<div class="mdstat"><span class="badge" style="background:#EAF0F3;color:#5E7E92"><i style="background:#9DBED0"></i>Shown for reference</span></div>'+
+      '<div class="mdsection"><h4>'+ic('<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>')+'Not scored yet</h4><p>'+reason+'</p>'+
+        (isSexSpecific(k)?'<button class="refbtn" onclick="goStep1()">Add your sex to score this</button>':'')+'</div>'+
+      edu+
+      '<div class="mdprivacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>In the full product, this value stays on your device — only its encrypted contribution is used.</div>';
+    render(html,'push');return;
+  }
+  const z=standardize(k,PROFILE[k],PROFILE);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
+  const yrs=REPORT.terms[k]||0;
+  const badgeBg=stat==='Optimal'?'var(--sage-tint)':stat==='Healthy / Typical'?'#EAF1DF':'var(--amber-tint)';
   const head='<div class="nav"><button class="back" onclick="pop()">'+BACK+' '+panelName+'</button><span class="navtitle">'+m[0]+'</span><span class="navspacer"></span></div>'+
     '<div class="mdval"><div class="v">'+fmtVal(k)+'</div><div class="u">'+(m[2]||'')+'</div></div>'+
     '<div class="mdstat"><span class="badge" style="background:'+badgeBg+';color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</span></div>'+
-    '<div class="mdscale">'+segBar(zone)+'</div>';
-  const ic=(p)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
-  const chev='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+    '<div class="mdscale">'+segBar(zone,k)+'</div>';
   let body;
   if(C){
     // Favorability is derived from the bio-age TERM SIGN (which already encodes
@@ -779,7 +1105,7 @@ function goMarker(k){const m=M[k];const z=standardize(k,PROFILE[k]);const zone=z
     let scoreLine;
     if(stat==='Optimal'){
       scoreLine='Your '+m[0]+' of '+fmtVal(k)+(m[2]?' '+m[2]:'')+' sits in the optimal range, supporting a healthy '+panelName+' score.';
-    } else if(stat==='Typical'){
+    } else if(stat==='Healthy / Typical'){
       const dir=zone>2?'toward the higher end of':zone<2?'toward the lower end of':'within';
       scoreLine='Your '+m[0]+' of '+fmtVal(k)+(m[2]?' '+m[2]:'')+' sits '+dir+' the typical range. It has a modest influence on your '+panelName+' score.';
     } else {

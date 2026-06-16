@@ -45,10 +45,23 @@ from . import constants as C
 # ===========================================================================
 # [CLIENT] standardization
 # ===========================================================================
-def standardize(marker_key, value):
-    """[CLIENT] z = (value - mid) / hw, clamped to [-Z_CLAMP, Z_CLAMP]."""
+def standardize(marker_key, value, profile=None):
+    """[CLIENT] z = (value - mid) / hw, clamped to [-Z_CLAMP, Z_CLAMP].
+
+    hs-CRP carries an acute-response cap: values above 10 mg/L reflect acute
+    inflammation (infection/injury) rather than the chronic low-grade signal,
+    so they are clamped to 10 before scoring so they cannot dominate.
+
+    Sex-specific markers (e.g. creatinine) select (mid, hw) from the user's
+    sex via constants.marker_range; when a profile/sex is provided this picks
+    the sex-appropriate range, otherwise it falls back to the positional mid/hw.
+    """
     m = C.MARKER_BY_KEY[marker_key]
-    z = (value - m.mid) / m.hw
+    sex = profile.get("sex") if profile else None
+    mid, hw = C.marker_range(marker_key, sex)
+    if marker_key == "hscrp" and value > C.CRP_ACUTE_CAP:
+        value = C.CRP_ACUTE_CAP
+    z = (value - mid) / hw
     return max(-C.Z_CLAMP, min(C.Z_CLAMP, z))
 
 
@@ -106,20 +119,45 @@ def present_markers(profile):
     return [m.key for m in C.MARKERS if profile.get(m.key) is not None]
 
 
+def is_scorable(profile, key):
+    """[CLIENT] present AND (not sex-specific OR a valid sex basis exists).
+
+    A sex-specific marker without a sex basis is PRESENT-BUT-UNSCORED
+    (informational): shown for reference, excluded from scoring, bio-age, and
+    scored-confidence, but tracked as recoverable (distinct from missing).
+    """
+    if profile.get(key) is None:
+        return False
+    if C.is_sex_specific(key):
+        return C.scoring_basis(profile.get("sex")) != "none"
+    return True
+
+
+def is_informational(profile, key):
+    """[CLIENT] value provided but deliberately not scored (lacking context)."""
+    return profile.get(key) is not None and not is_scorable(profile, key)
+
+
 def panel_present_markers(profile, panel):
     return [k for k in present_markers(profile)
             if C.MARKER_BY_KEY[k].panel == panel]
 
 
+def panel_scorable_markers(profile, panel):
+    """[CLIENT] panel markers that are actually scorable (excludes informational)."""
+    return [k for k in panel_present_markers(profile, panel)
+            if is_scorable(profile, k)]
+
+
 def renormalized_weights(profile, panel):
-    """[CLIENT] within-panel weights over PRESENT markers, renormalized to 1.
+    """[CLIENT] within-panel weights over SCORABLE markers, renormalized to 1.
 
     `weight` lives implicitly as equal-within-panel here; we derive per-marker
     base weight from the panel's marker count so the table stays simple, then
-    renormalize over present markers. (A future version can carry explicit
+    renormalize over scorable markers. (A future version can carry explicit
     per-marker weights; equal-weight is the honest V1 default.)
     """
-    keys = panel_present_markers(profile, panel)
+    keys = panel_scorable_markers(profile, panel)
     if not keys:
         return {}
     w = 1.0 / len(keys)
@@ -130,24 +168,33 @@ def present_panels(profile):
     return [p for p in C.PANELS if panel_present_markers(profile, p)]
 
 
+def scored_panels(profile):
+    """[CLIENT] panels with at least one scorable marker (excludes tracking-only)."""
+    return [p for p in C.PANELS if panel_scorable_markers(profile, p)]
+
+
 # ===========================================================================
 # [SERVER] system scores + [CLIENT] composite
 # ===========================================================================
 def system_score(profile, panel):
-    """[SERVER] SystemScore = 100 - sum(weight * penalty(z)), clamped [0,100]."""
+    """[SERVER] SystemScore = 100 - sum(weight * penalty(z)), clamped [0,100].
+
+    Returns None when the panel has no SCORABLE markers (present-but-unscored
+    only) -> the client renders a Tracking / Needs-Context state.
+    """
     weights = renormalized_weights(profile, panel)
     if not weights:
-        return None  # panel absent
+        return None  # panel absent OR present-but-unscored (tracking)
     total_penalty = 0.0
     for k, w in weights.items():
-        z = standardize(k, profile[k])
+        z = standardize(k, profile[k], profile)
         total_penalty += w * penalty(k, z)
     return max(0.0, min(100.0, 100.0 - total_penalty))
 
 
 def composite_score(profile):
-    """[CLIENT] weighted blend of present system scores (weights renormalized)."""
-    panels = present_panels(profile)
+    """[CLIENT] weighted blend of SCORED system scores (weights renormalized)."""
+    panels = scored_panels(profile)
     scores = {p: system_score(profile, p) for p in panels}
     wsum = sum(C.PANEL_COMPOSITE_WEIGHT[p] for p in panels)
     if wsum == 0:
@@ -169,8 +216,10 @@ def bioage_terms(profile):
     """
     terms = {}
     for k in present_markers(profile):
+        if not is_scorable(profile, k):
+            continue  # informational markers never contribute to bio-age
         m = C.MARKER_BY_KEY[k]
-        z = standardize(k, profile[k])
+        z = standardize(k, profile[k], profile)
         if m.shape in C.PENALTY_BASED_BIOAGE:
             # penalty magnitude -> years; normalize penalty (0..~100) to ~0..3 SD
             pen = penalty(k, z)
@@ -208,7 +257,9 @@ def followups(profile):
     """
     out = []
     for k in present_markers(profile):
-        z = standardize(k, profile[k])
+        if not is_scorable(profile, k):
+            continue  # informational markers are not eligible for follow-ups
+        z = standardize(k, profile[k], profile)
         if abs(z) > C.FOLLOWUP_Z:
             out.append((k, round(z, 2)))
     return out
@@ -225,7 +276,9 @@ def confidence(profile):
         # exclude purely-optional markers from the "fullness" denominator so a
         # user isn't penalized for skipping an optional lab
         core_keys = [k for k in panel_keys if k not in C.OPTIONAL_MARKERS]
-        present = [k for k in core_keys if profile.get(k) is not None]
+        # only SCORABLE markers count toward interpreted confidence; a present-
+        # but-unscored marker (e.g. creatinine without sex) contributes nothing.
+        present = [k for k in core_keys if is_scorable(profile, k)]
         frac = (len(present) / len(core_keys)) if core_keys else 0.0
         score += C.PANEL_INFO_WEIGHT[p] * frac
     score = max(0.0, min(1.0, score))
