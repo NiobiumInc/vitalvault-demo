@@ -115,6 +115,11 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);-webkit-font-smoo
 .syschev{color:#c3bdb2;font-size:17px;align-self:center;padding-right:13px;}
 
 .drivecol{background:var(--card);border:1px solid var(--hair);border-radius:15px;padding:15px 17px;margin-bottom:11px;}
+.story{background:linear-gradient(180deg,#FBFAF7,#F6F3EC);border:1px solid var(--hair);border-radius:var(--r);padding:22px 21px;}
+.story .storyeyebrow{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--slate-soft);font-weight:600;margin-bottom:14px;}
+.story p{font-family:'Fraunces',serif;font-size:15px;line-height:1.62;color:var(--ink);margin-bottom:13px;font-weight:400;}
+.story p:last-child{margin-bottom:0;}
+.story p.muted{font-size:12.5px;font-family:'Inter';color:var(--ink-soft);line-height:1.55;}
 .drivehdr{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:12px;}
 .drivehdr .ic{width:23px;height:23px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:none;}
 .drivehdr.help .ic{background:var(--sage-tint);color:var(--sage-deep);}
@@ -562,6 +567,99 @@ function deltaText(d){const a=Math.abs(d);
   if(a<1.0)return{big:'Right around your age',sub:'biologically in step with '+REPORT.prof.age,col:'var(--slate)'};
   if(d<0)return{big:Math.round(a)+(Math.round(a)===1?' year':' years')+' younger',sub:'than your actual age of '+REPORT.prof.age,col:'var(--sage-deep)'};
   return{big:Math.round(a)+(Math.round(a)===1?' year':' years')+' above',sub:'your actual age of '+REPORT.prof.age,col:'var(--amber-deep)'};}
+
+/* ===== YOUR LONGEVITY STORY — six deterministic slots =====================
+   Each slot is a pure function of the report. Fixed sentence templates; only
+   values and system/marker names are interpolated. No prediction, causation,
+   recommendation, or condition names. Conditional slots skip silently. ======*/
+const STORY_STRONG=85, STORY_REVIEW=70, STORY_SPREAD=10, STORY_DRIVER_MIN=0.5;
+function panelDisp(R,p){return R.sys[p]?R.sys[p].disp:null;}
+function longevityStory(R){
+  const out=[];const age=R.prof.age;const bio=Math.round(R.ba.age);const d=R.ba.delta;const a=Math.abs(d);
+  const yr=(n)=>n===1?'year':'years';
+
+  // Slot 1 — bio-age frame (always)
+  let s1;
+  if(a<1) s1='Your biological age is estimated at '+bio+', right around your actual age of '+age+'.';
+  else if(d<0) s1='Your biological age is estimated at '+bio+', which is '+Math.round(a)+' '+yr(Math.round(a))+' below your actual age of '+age+'.';
+  else s1='Your biological age is estimated at '+bio+', which is '+Math.round(a)+' '+yr(Math.round(a))+' above your actual age of '+age+'.';
+  s1+=' This is an illustrative estimate built from the markers you entered — a descriptive snapshot, not a clinical measurement or prediction.';
+  out.push(s1);
+
+  // Slot 2 — bio-age drivers (conditional; threshold-gated; direction follows delta)
+  const younger=d<0;
+  const drivers=Object.keys(R.terms)
+    .map(k=>({k,n:M[k][0],term:R.terms[k]}))
+    .filter(x=>younger?x.term<=-STORY_DRIVER_MIN:x.term>=STORY_DRIVER_MIN)
+    .sort((x,y)=>Math.abs(y.term)-Math.abs(x.term))
+    .slice(0,3);
+  if(Math.abs(d)>=1 && drivers.length){
+    const names=listJoin(drivers.map(x=>x.n));
+    out.push('The markers contributing most to your '+(younger?'younger':'higher')+' estimate were '+names+'.');
+  }
+
+  // Slot 3 — strengths (always; never claims "strong" if nothing qualifies)
+  const present=R.ps.map(p=>({p,name:PANEL_META[p].name,disp:panelDisp(R,p)})).filter(x=>x.disp!=null);
+  const strong=present.filter(x=>x.disp>=STORY_STRONG).sort((a,b)=>b.disp-a.disp).slice(0,3);
+  if(strong.length>=2){
+    out.push('Your strongest areas right now are '+listJoin(strong.map(x=>x.name))+' — these systems’ markers are sitting in healthy ranges.');
+  } else if(strong.length===1){
+    out.push('Your strongest area right now is '+strong[0].name+', with markers sitting in healthy ranges.');
+  } else if(present.length){
+    const top=present.slice().sort((a,b)=>b.disp-a.disp)[0];
+    out.push('Your steadiest area in this set is '+top.name+'.');
+  }
+
+  // Slot 4 — attention (conditional; skipped if nothing qualifies; capped & calm)
+  const fuSorted=R.fus.slice().sort((x,y)=>Math.abs(standardize(y.k,R.prof[y.k]))-Math.abs(standardize(x.k,R.prof[x.k])));
+  const fuTop=fuSorted.slice(0,3).map(f=>f.marker);
+  const fuExtra=fuSorted.length-fuTop.length;
+  const lowSys=present.filter(x=>x.disp<STORY_REVIEW).sort((a,b)=>a.disp-b.disp);
+  let s4=null;
+  if(fuTop.length){
+    const tail=fuExtra>0?', along with a few others':'';
+    const one=fuTop.length===1&&fuExtra===0;
+    s4=(one?'One marker sits':'A few markers sit')+' outside '+(one?'its':'their')+' typical range — '+listJoin(fuTop)+tail+' — which may be worth discussing with a provider.';
+  } else if(lowSys.length){
+    s4='Your '+lowSys[0].name+' score is lower than your others, which may be worth keeping an eye on.';
+  }
+  if(s4)out.push(s4);
+
+  // Slot 5 — themes (conditional; at most one; only if condition clearly fires)
+  if(present.length>=2){
+    const scores=present.map(x=>x.disp);const hi=Math.max(...scores),lo=Math.min(...scores);
+    let theme=null;
+    // "consistent steady" only when the estimate itself isn't notably elevated,
+    // so it never contradicts a higher-bio-age driver slot.
+    if(lo>=STORY_STRONG && (hi-lo)<STORY_SPREAD && d<2){
+      theme='Across the systems you’ve entered, your markers tell a consistent, steady story.';
+    } else if(strong.length && (lowSys.length || R.fus.length)){
+      theme='Your profile is a mix — some systems sitting strong while others have a marker or two outside their range.';
+    } else {
+      const core=present.find(x=>x.p==='core');
+      const labs=present.filter(x=>['metabolic','lipid','inflammation','liver','thyroid'].includes(x.p));
+      if(core&&labs.length){
+        const labAvg=labs.reduce((s,x)=>s+x.disp,0)/labs.length;
+        if(core.disp-labAvg>=STORY_SPREAD) theme='Your everyday-vitals markers are tracking stronger than your lab markers in this snapshot.';
+        else if(labAvg-core.disp>=STORY_SPREAD) theme='Your lab markers are tracking stronger than your everyday-vitals markers in this snapshot.';
+      }
+    }
+    if(theme)out.push(theme);
+  }
+
+  // Slot 6 — completeness (always)
+  const total=PANELS.length;const n=R.ps.length;
+  const absent=PANELS.filter(p=>!R.ps.includes(p)).map(p=>PANEL_META[p].name);
+  if(n>=total){
+    out.push('This story reflects all '+total+' systems you can enter — a fairly complete picture.');
+  } else if(n<=2){
+    out.push('This is an early snapshot based on '+n+' system'+(n===1?'':'s')+'. The more you add, the more complete and reliable the picture becomes.');
+  } else {
+    out.push('This story is based on '+n+' of '+total+' systems. Adding '+listJoin(absent)+' would give a fuller picture.');
+  }
+  return out;
+}
+function listJoin(arr){if(arr.length<=1)return arr[0]||'';if(arr.length===2)return arr[0]+' and '+arr[1];return arr.slice(0,-1).join(', ')+', and '+arr[arr.length-1];}
 function overview(){
   const R=REPORT;const baPct=Math.max(8,Math.min(96,100-(R.ba.delta+10)/20*100));
   const dt=deltaText(R.ba.delta);
@@ -612,6 +710,11 @@ function overview(){
   <div class="vstrip"><span>VitalScore</span><span class="sc">${compDisp}</span><span class="band" style="${bandStyle(compBand)}">${compBand}</span><span class="dot"></span><span class="bars">${confBars}</span><span style="font-size:12px">${R.ps.length} of 4 panels</span></div>
 
   <div class="block"><div class="eyebrow">Your systems</div><div class="sysrow">${sysCards}</div>${absentNote}</div>
+
+  <div class="block"><div class="story">
+    <div class="storyeyebrow">Your longevity story</div>
+    ${longevityStory(R).map(s=>'<p>'+s+'</p>').join('')}
+  </div></div>
 
   <div class="block"><div class="sectit">What's keeping you young</div>
     <div class="secsub">The markers working in your favor — and where there's room to grow.</div>
