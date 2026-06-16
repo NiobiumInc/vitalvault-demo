@@ -58,11 +58,51 @@ def standardize(marker_key, value, profile=None):
     """
     m = C.MARKER_BY_KEY[marker_key]
     sex = profile.get("sex") if profile else None
-    mid, hw = C.marker_range(marker_key, sex)
+    if C.is_context_specific(marker_key) and profile is not None:
+        mid, hw = _context_range(profile, marker_key)
+        if mid is None:  # not scorable in this context -> fall back (unused when informational)
+            mid, hw = m.mid, m.hw
+    else:
+        mid, hw = C.marker_range(marker_key, sex)
     if marker_key == "hscrp" and value > C.CRP_ACUTE_CAP:
         value = C.CRP_ACUTE_CAP
     z = (value - mid) / hw
     return max(-C.Z_CLAMP, min(C.Z_CLAMP, z))
+
+
+def hormone_mode(profile, key):
+    """[CLIENT] Priority ladder for context-specific hormones (estradiol,
+    progesterone): sex -> pregnancy -> medication -> phase -> score.
+    Returns {'mode': 'scored'|'info', 'reason': str, 'basis': str}.
+    First match wins; the conservative default is to INFORM, never to score."""
+    sex = profile.get("sex")
+    if C.scoring_basis(sex) == "none":
+        return {"mode": "info", "reason": "sex"}
+    if sex == "male":
+        return {"mode": "scored", "basis": "male"}
+    # female-range
+    if profile.get("pregnant") is True:
+        return {"mode": "info", "reason": "pregnancy"}
+    med = profile.get("hormonemed")
+    if med and med != "none":
+        return {"mode": "info", "reason": med}
+    meno = profile.get("menopause")
+    if meno == "post":
+        return {"mode": "scored", "basis": "female_post"}
+    phase = profile.get("cyclephase")
+    if not phase or phase == "unknown":
+        return {"mode": "info", "reason": "phase"}
+    return {"mode": "scored", "basis": "female_" + phase}
+
+
+def _context_range(profile, key):
+    r = hormone_mode(profile, key)
+    if r["mode"] != "scored":
+        return None, None
+    rng = C.CONTEXT_RANGES[key].get(r["basis"])
+    if not rng:
+        return None, None
+    return rng["mid"], rng["hw"]
 
 
 # ===========================================================================
@@ -128,6 +168,8 @@ def is_scorable(profile, key):
     """
     if profile.get(key) is None:
         return False
+    if C.is_context_specific(key):
+        return hormone_mode(profile, key)["mode"] == "scored"
     if C.is_sex_specific(key):
         return C.scoring_basis(profile.get("sex")) != "none"
     return True

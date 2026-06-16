@@ -114,6 +114,14 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);-webkit-font-smoo
 .pdial-track svg{width:26px;height:26px;}
 .refbtn{margin-top:11px;width:100%;padding:11px;border:1px solid var(--mist);background:#EAF0F3;color:#3F5B6B;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
 .refbtn:active{transform:scale(0.99);}
+.hcard{background:var(--sage-tint);border-radius:14px;padding:16px 17px;margin-bottom:14px;}
+.hcard-h{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:#48624F;margin-bottom:8px;}
+.hcard-h svg{width:18px;height:18px;flex:none;}
+.hcard p{font-size:12.5px;line-height:1.6;color:#4a5a50;margin:0 0 8px;}
+.hcard p:last-child{margin-bottom:0;}
+.hconf{border-radius:12px;padding:12px 14px;margin-bottom:16px;}
+.hconf-b{font-size:13px;font-weight:600;margin-bottom:3px;}
+.hconf-n{font-size:12px;line-height:1.5;color:var(--slate-soft);}
 .sysdial .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:500;font-family:'Fraunces',serif;}
 .sysinfo{flex:1;min-width:0;}
 .sysname{font-size:14px;font-weight:600;}
@@ -242,6 +250,7 @@ const flower='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const flame='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 9 13 9 13c-1.5-.5-3-2-3-4 0 0-2 2-2 5a8 8 0 0 0 16 0c0-5-4-8-8-12z"/></svg>';
 const liver='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7c5-2 13-3 18 0 0 5-2 9-7 10-4 .8-8-1-9-4-.6-2-1.5-4-2-6z"/><path d="M8 9c2 1 5 1 7 0"/></svg>';
 const kidney='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3C5 3 4 6 4 9c0 4 2 6 4 6s2-2 2-4 0-3 1-4 2-1 2-2-2-2-5-2z"/><path d="M16 21c3 0 4-3 4-6 0-4-2-6-4-6s-2 2-2 4 0 3-1 4-2 1-2 2 2 2 5 2z"/></svg>';
+const hormone='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M12 13v8M9 18h6"/></svg>';
 
 /* ===== MODEL (ported from constants.py) ===== */
 const Z_CLAMP=3.0, FOLLOWUP_Z=2.0, PENALTY_SCALE=100.0/(Z_CLAMP*Z_CLAMP);
@@ -250,9 +259,9 @@ const CRP_ACUTE_CAP=10.0; // hs-CRP values above this reflect acute response; cl
 const U='u',DL='dl',DH='dh',UW='uw';
 const PENALTY_BASED=new Set([U,UW]);
 const OPTIONAL=new Set(['whtr','insulin']);
-const PANEL_COMPOSITE={core:.24,metabolic:.23,lipid:.19,inflammation:.08,liver:.06,kidney:.05,thyroid:.15};
-const PANEL_INFO={core:.32,metabolic:.20,lipid:.16,inflammation:.08,liver:.05,kidney:.04,thyroid:.15};
-const PANELS=['core','metabolic','lipid','inflammation','liver','kidney','thyroid'];
+const PANEL_COMPOSITE={core:.23,metabolic:.22,lipid:.18,inflammation:.08,liver:.06,kidney:.05,hormone:.03,thyroid:.15};
+const PANEL_INFO={core:.31,metabolic:.19,lipid:.16,inflammation:.08,liver:.05,kidney:.04,hormone:.02,thyroid:.15};
+const PANELS=['core','metabolic','lipid','inflammation','liver','kidney','hormone','thyroid'];
 const PANEL_META={
   core:{name:'Core vitals',glyph:heart,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'},
   metabolic:{name:'Metabolic',glyph:spark,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
@@ -260,6 +269,7 @@ const PANEL_META={
   inflammation:{name:'Inflammation',glyph:flame,tone:'#9A7426',tint:'#FAF0DC',edge:'#E2A33C'},
   liver:{name:'Liver',glyph:liver,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
   kidney:{name:'Kidney',glyph:kidney,tone:'#5E7E92',tint:'#EAF0F3',edge:'#9DBED0'},
+  hormone:{name:'Hormones',glyph:hormone,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'},
   thyroid:{name:'Thyroid',glyph:flower,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'}
 };
 // key:[label, fn-subtitle, unit, mid, hw, shape, beta, panel, about, rangeText]
@@ -309,6 +319,38 @@ const M={
    optimal:"Mid-to-lower part of the sex-appropriate range, read with eGFR.",
    influences:"Creatinine is strongly influenced by muscle mass (more muscle, higher baseline), as well as hydration, recent intense exercise, meat intake, and certain medications.",
    caveats:"This is the key nuance: creatinine is muscle-dependent, so a very muscular person can read “high” while being perfectly healthy, and someone with low muscle mass can read deceptively low. Because muscle mass differs by sex, VitalVault interprets creatinine against sex-specific ranges — and needs your sex to score it accurately. It’s a snapshot affected by hydration and recent exercise, and most meaningful alongside eGFR. Illustrative and non-diagnostic."
+ }],
+ testosterone:['Testosterone','ANDROGEN','ng/dL',400,300,U,0.0,'hormone','The primary androgen; levels and reference ranges differ markedly by sex.','sex-specific',{
+   measures:"Testosterone is the primary androgen — a hormone involved in muscle, bone, libido, mood, and energy in people of all sexes, though typical levels differ markedly between them. This measures total testosterone (both the fraction bound to carrier proteins and the small free fraction). It’s the anchor of an androgen picture that’s read alongside SHBG, the protein that controls how much is actually available to tissues.",
+   why:"Testosterone is the central hormone in this panel. Because male and female ranges differ roughly ten- to twenty-fold, it’s interpreted against sex-specific ranges — which is why VitalVault needs your sex to score it. VitalVault keeps hormones from influencing your biological-age estimate, so testosterone informs your Hormones score without affecting your headline number.",
+   typical:"~300–1000 ng/dL (men), ~15–70 ng/dL (women) — lab-dependent.",
+   optimal:"Mid-range for your sex; interpreted alongside SHBG.",
+   influences:"Testosterone is influenced by sex, age (it declines gradually), time of day (higher in the morning), sleep, body composition, illness, and hormone medications or therapy.",
+   caveats:"Testosterone follows a daily rhythm (typically highest in the morning), so timing of the draw matters, and a single value is a snapshot. It’s strongly sex-specific and is best read together with SHBG. Hormonal medications and testosterone therapy change its meaning substantially. Illustrative and non-diagnostic."
+ }],
+ shbg:['SHBG','BINDING PROTEIN','nmol/L',45,30,U,0.0,'hormone','The protein that binds testosterone and controls how much is available to tissues.','sex-specific',{
+   measures:"SHBG (sex hormone–binding globulin) is the protein that binds testosterone and other sex hormones in the blood, controlling how much is free and available to your tissues. Think of it as the carrier fleet: when more hormone is bound to SHBG, less is bioavailable. Reading SHBG alongside total testosterone gives a fuller picture than testosterone alone — high SHBG can mean less free testosterone even when the total looks normal.",
+   why:"SHBG is the interpretive partner to testosterone: it’s what determines how much of your total testosterone is actually usable. That’s the relationship the free-testosterone calculation captures — a later addition to VitalVault. For now, SHBG and total testosterone together convey the key idea. Like all hormones here, SHBG is kept from influencing your biological-age estimate.",
+   typical:"~10–55 nmol/L (men), ~25–120 nmol/L (women) — lab-dependent.",
+   optimal:"Mid-range for your sex; interpreted with testosterone.",
+   influences:"SHBG is influenced by sex, age, thyroid status, liver health, insulin and body composition (higher insulin tends to lower it), and hormone medications — notably hormonal contraception, which raises it.",
+   caveats:"SHBG is most meaningful read alongside testosterone, not alone — its main value is in interpreting how much testosterone is bioavailable. Hormonal contraception notably raises SHBG, which can lower free androgens even when total testosterone is unchanged. Interpreted against sex-specific ranges. Illustrative and non-diagnostic."
+ }],
+ estradiol:['Estradiol','ESTROGEN (E2)','pg/mL',100,80,U,0.0,'hormone','The primary estrogen; in cycling women it varies several-fold across the cycle.','context-specific',{
+   measures:"Estradiol (E2) is the primary and most potent estrogen, involved in the menstrual cycle, bone health, mood, and many other systems. In people who menstruate, it rises and falls several-fold across the cycle; in men and post-menopausal women it sits in a much narrower, lower range. Because of that variation, estradiol is one of the most context-dependent markers VitalVault tracks.",
+   why:"Estradiol anchors the estrogen side of the Hormones panel. Whether it can be meaningfully interpreted depends heavily on context — cycle phase, menopause status, pregnancy, and hormone medications all change what a given value means. VitalVault scores estradiol only when that context supports interpretation, and otherwise shows it for reference. It’s kept from influencing your biological-age estimate.",
+   typical:"Varies widely: ~15–350 pg/mL across a menstrual cycle; lower and more stable post-menopause; ~10–40 pg/mL in men.",
+   optimal:"Depends entirely on context — there’s no single optimal value across cycle phases, menopause, or sex.",
+   influences:"Estradiol is influenced by menstrual cycle phase, menopause status, pregnancy, hormonal contraception and hormone therapy, age, and body composition.",
+   caveats:"This is the central nuance: a single estradiol value means little without knowing where someone is in their cycle, their menopause status, whether they’re pregnant, and what medications they take. A “low” reading can be entirely normal in one context and notable in another — which is exactly why VitalVault shows it for reference rather than scoring it when that context isn’t available. Illustrative and non-diagnostic."
+ }],
+ progesterone:['Progesterone','LUTEAL HORMONE','ng/mL',7,7,U,0.0,'hormone','Spikes in the luteal phase; a value is uninterpretable without cycle context.','context-specific',{
+   measures:"Progesterone is a hormone central to the menstrual cycle and pregnancy. Its defining feature for interpretation is timing: it stays near a low baseline for most of the cycle, then rises sharply in the luteal phase (after ovulation). In men and post-menopausal women it sits at a low, stable level. This makes progesterone the most timing-dependent hormone in the panel.",
+   why:"Progesterone completes the estrogen/cycle picture. Because it changes so dramatically across the cycle, a value is genuinely uninterpretable without knowing cycle phase — which is why VitalVault scores it only when that context exists and otherwise shows it for reference. Like all hormones here, it’s kept from influencing your biological-age estimate.",
+   typical:"~<1 ng/mL early-cycle, rising to ~5–20 ng/mL in the luteal phase; low and stable in men and post-menopause.",
+   optimal:"Depends entirely on cycle phase and context — there’s no single optimal value.",
+   influences:"Progesterone is influenced overwhelmingly by cycle phase, as well as menopause status, pregnancy, and hormone medications.",
+   caveats:"This is the key nuance, even more than for estradiol: progesterone is near its floor for most of the cycle and spikes only in the luteal phase, so a “low” value is completely normal early-cycle and only meaningful later. Interpreting it without cycle phase produces misleading conclusions — so VitalVault shows it for reference unless cycle phase (or post-menopausal status) is known. Illustrative and non-diagnostic."
  }],
  tsh:['TSH','THYROID SIGNAL','mIU/L',1.8,1.3,U,0.3,'thyroid','The hormone telling your thyroid how hard to work. Mid-range reflects balance.','0.4–4.0'],
  ft3:['Free T3','ACTIVE THYROID','pg/mL',3.3,0.7,U,0.2,'thyroid','The active thyroid hormone driving metabolism and energy.','2.3–4.2'],
@@ -471,13 +513,69 @@ function panelKeys(p){return KEYS.filter(k=>M[k][7]===p);}
    informational/reference-only, excluded from scoring, bio-age, and scored
    confidence — but tracked as recoverable, not treated as missing. */
 const SEX_RANGES={
-  creatinine:{ male:{mid:0.95,hw:0.35}, female:{mid:0.80,hw:0.30} }
+  creatinine:{ male:{mid:0.95,hw:0.35}, female:{mid:0.80,hw:0.30} },
+  testosterone:{ male:{mid:550,hw:250}, female:{mid:40,hw:30} },
+  shbg:{ male:{mid:35,hw:25}, female:{mid:70,hw:50} }
 };
 function scoringBasis(sex){ return sex==='male'?'male':sex==='female'?'female':'none'; }
 function isSexSpecific(k){ return !!SEX_RANGES[k]; }
-// scorable = present AND (not sex-specific OR a valid sex basis exists)
+
+/* ===== CONTEXT-SPECIFIC HORMONE GATING (estrogen/cycle group) =============
+   Estradiol & progesterone need sex AND context (menopause/phase/pregnancy/
+   medication) to be meaningfully interpreted. The priority ladder decides the
+   mode; a wrong score here is actively harmful, so the default is to INFORM.
+   Ladder (first match wins): sex → pregnancy → medication → phase → score.
+   Modes: 'scored' | 'info' (with a named reason). Recoverable reasons (sex,
+   phase) drive prompts; intrinsic reasons (pregnancy, medication) only explain. */
+const CONTEXT_MARKERS=new Set(['estradiol','progesterone']);
+function isContextSpecific(k){ return CONTEXT_MARKERS.has(k); }
+// phase/menopause/sex-aware ranges for the estrogen group (ILLUSTRATIVE)
+const CONTEXT_RANGES={
+  estradiol:{
+    male:{mid:25,hw:18},
+    female_post:{mid:15,hw:12},
+    female_follicular:{mid:55,hw:40},
+    female_ovulation:{mid:250,hw:150},
+    female_luteal:{mid:150,hw:90}
+  },
+  progesterone:{
+    male:{mid:0.4,hw:0.4},
+    female_post:{mid:0.4,hw:0.4},
+    female_follicular:{mid:0.8,hw:0.7},
+    female_ovulation:{mid:3,hw:2.5},
+    female_luteal:{mid:12,hw:8}
+  }
+};
+const RECOVERABLE_REASONS=new Set(['sex','phase']); // others (pregnancy/medication) are intrinsic
+// Resolve the interpretation mode for a context-specific hormone marker.
+function hormoneMode(prof,k){
+  const sex=prof.sex;
+  if(scoringBasis(sex)==='none')return {mode:'info',reason:'sex'};
+  if(sex==='male'){
+    // males: estrogen group is a narrow stable range; T-therapy doesn't gate E2/Prog
+    return {mode:'scored',basis:'male'};
+  }
+  // female-range from here
+  if(prof.pregnant===true)return {mode:'info',reason:'pregnancy'};
+  const med=prof.hormonemed;
+  if(med&&med!=='none')return {mode:'info',reason:med}; // contraception/HRT/other gate estrogen group
+  const meno=prof.menopause;
+  if(meno==='post')return {mode:'scored',basis:'female_post'};
+  // pre/peri -> need cycle phase
+  const phase=prof.cyclephase;
+  if(!phase||phase==='unknown')return {mode:'info',reason:'phase'};
+  return {mode:'scored',basis:'female_'+phase};
+}
+function contextRange(prof,k){
+  const r=hormoneMode(prof,k);
+  if(r.mode!=='scored')return null;
+  return CONTEXT_RANGES[k][r.basis]||null;
+}
+// scorable = present AND interpretable (sex-specific: valid basis; context-
+// specific: hormoneMode resolves to scored; else: present is enough)
 function isScorable(prof,k){
   if(prof[k]==null||isNaN(prof[k]))return false;
+  if(isContextSpecific(k)){ return hormoneMode(prof,k).mode==='scored'; }
   if(isSexSpecific(k)){ return scoringBasis(prof.sex)!=='none'; }
   return true;
 }
@@ -493,7 +591,8 @@ function sexRange(prof,k){
 /* ===== SCORING (ported from scoring.py) ===== */
 function standardize(k,v,prof){
   const m=M[k];let mid=m[3],hw=m[4];
-  if(isSexSpecific(k)&&prof){ const r=sexRange(prof,k); if(r){mid=r.mid;hw=r.hw;} }
+  if(isContextSpecific(k)&&prof){ const r=contextRange(prof,k); if(r){mid=r.mid;hw=r.hw;} }
+  else if(isSexSpecific(k)&&prof){ const r=sexRange(prof,k); if(r){mid=r.mid;hw=r.hw;} }
   if(k==='hscrp'&&v>CRP_ACUTE_CAP)v=CRP_ACUTE_CAP;
   return Math.max(-Z_CLAMP,Math.min(Z_CLAMP,(v-mid)/hw));
 }
@@ -553,9 +652,14 @@ function confidence(prof){
   });sc=Math.max(0,Math.min(1,sc));
   const band=sc>=.85?'High':sc>=.6?'Moderate':sc>=.35?'Basic':'Limited';
   // recoverable = values the user provided that we declined to score for lack
-  // of context (distinct from never-provided). Drives "add sex" style prompts.
-  const recoverable=present(prof).filter(k=>isInformational(prof,k))
-    .map(k=>({k,marker:M[k][0],reason:isSexSpecific(k)?'sex':'context'}));
+  // of context. Reason is named; recoverable reasons (sex/phase) drive prompts,
+  // intrinsic reasons (pregnancy/medication) only explain (no prompt).
+  const recoverable=present(prof).filter(k=>isInformational(prof,k)).map(k=>{
+    let reason='context';
+    if(isContextSpecific(k))reason=hormoneMode(prof,k).reason;
+    else if(isSexSpecific(k))reason='sex';
+    return {k,marker:M[k][0],reason,recoverable:RECOVERABLE_REASONS.has(reason)};
+  });
   return {score:sc,band:band,recoverable:recoverable};
 }
 /* ===== SHARED THREE-TIER LOGIC (single source of truth) ====================
@@ -808,15 +912,60 @@ function step3(){return `
   ${labGroup('inflammation','Inflammation',flame,'#9A7426','#FAF0DC',['hscrp'])}
   ${labGroup('liver','Liver',liver,'#3F5B6B','#EAF0F3',['alt','ast'])}
   ${labGroup('kidney','Kidney',kidney,'#5E7E92','#EAF0F3',['creatinine'])}
+  ${labGroup('hormone','Hormones',hormone,'#7C9885','#EDF2EE',['testosterone','shbg'])}
   ${labGroup('thyroid','Thyroid',flower,'#7C9885','#EDF2EE',['tsh','ft3','ft4'])}
   <button class="btn" onclick="finish()">See my results</button>
   <div class="skip" onclick="finish()">Skip labs — score from vitals only ›</div>`;
 }
 function finish(){
   KEYS.forEach(k=>{const e=document.getElementById('f_'+k);if(e&&e.value!=='')formData[k]=e.value;});
+  // If any hormone marker was entered, collect interpretation context first.
+  const hormoneEntered=['testosterone','shbg','estradiol','progesterone'].some(k=>formData[k]!=null&&formData[k]!=='');
+  if(hormoneEntered){ render(hormoneContext(),'push'); return; }
+  commitResults();
+}
+function commitResults(){
   PROFILE=engineer(formData);REPORT=computeReport(PROFILE);
   resetTo(overview());
 }
+/* ===== conditional hormone context step (only when hormones entered) =======
+   Collects the minimum context the priority ladder needs. Branches on sex.
+   Menopause status is elevated/first for female-range users; cycle phase only
+   appears for pre/peri. Everything skippable -> safe informational default.
+   Writes profile.menopause (core attribute), .cyclephase, .hormonemed, .pregnant. */
+function hormoneContext(){
+  const sex=formData.sex;
+  const seg=(field,opts,cur)=>'<div class="seg-input" id="ctx_'+field+'">'+
+    opts.map(([v,lbl])=>'<button onclick="pickCtx(\''+field+'\',\''+v+'\',this)" class="'+(cur===v?'sel':'')+'">'+lbl+'</button>').join('')+'</div>';
+  let fields='';
+  // medication question — all hormone users
+  fields+='<div class="field"><label>Hormonal medication</label>'+
+    seg('hormonemed',[['none','None'],['contraception','Contraception'],['hrt','HRT/MHT'],['testosterone','T therapy'],['other','Other']],formData.hormonemed||'none')+'</div>';
+  if(sex==='female'){
+    // menopause status — elevated, prominent, first for female-range users
+    fields+='<div class="field"><label>Menopause status <span class="opt">· shapes how estrogen markers are read</span></label>'+
+      seg('menopause',[['pre','Pre'],['peri','Peri'],['post','Post']],formData.menopause||'')+'</div>';
+    // cycle phase + pregnancy only relevant pre/peri — shown always but ignored if post
+    fields+='<div class="field" id="phasefield"><label>Cycle phase <span class="opt">· if pre/peri-menopausal</span></label>'+
+      seg('cyclephase',[['follicular','Follicular'],['ovulation','Ovulation'],['luteal','Luteal'],['unknown','Not sure']],formData.cyclephase||'unknown')+'</div>';
+    fields+='<div class="field" id="pregfield"><label>Currently pregnant?</label>'+
+      seg('pregnant',[['no','No'],['yes','Yes']],formData.pregnant===true?'yes':'no')+'</div>';
+  }
+  return `<div class="nav"><button class="back" onclick="pop()">${BACK}</button><span class="navtitle">Hormone context</span><span class="navspacer"></span></div>
+    <div class="secsub" style="text-align:center;margin-bottom:8px">A few optional details help us interpret hormones accurately.</div>
+    <div class="mdprivacy" style="margin-bottom:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Hormone levels vary by sex, age, cycle phase, menopause, pregnancy, and medications. When we don’t have enough context, we’ll show a value for reference instead of scoring it — that’s deliberate, not missing.</div>
+    ${fields}
+    <button class="btn" onclick="finishContext()">See my results</button>
+    <div class="skip" onclick="finishContext()">Skip — show hormones for reference ›</div>`;
+}
+function pickCtx(field,v,btn){
+  if(field==='pregnant')formData.pregnant=(v==='yes');
+  else formData[field]=v;
+  const wrap=document.getElementById('ctx_'+field);
+  if(wrap)wrap.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function finishContext(){ commitResults(); }
 function engineer(raw){
   const p={};const num=v=>v===''||v==null?null:parseFloat(v);
   p.age=num(raw.age);
@@ -824,8 +973,13 @@ function engineer(raw){
   if(h&&w)p.bmi=+(w/((h/100)*(h/100))).toFixed(2);
   if(waist&&h)p.whtr=+(waist/h).toFixed(4);
   if(raw.activity_ord!=null)p.activity=+(raw.activity_ord/4).toFixed(3);
-  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','hscrp','alt','ast','creatinine','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
+  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','hscrp','alt','ast','creatinine','testosterone','shbg','estradiol','progesterone','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
   p.sex=raw.sex||null; // now load-bearing: selects sex-specific marker ranges (creatinine, hormones)
+  // hormone interpretation context (core attributes; collected contextually for now)
+  p.menopause=raw.menopause||null;
+  p.cyclephase=raw.cyclephase||null;
+  p.hormonemed=raw.hormonemed||null;
+  p.pregnant=raw.pregnant===true||raw.pregnant==='yes'||null;
   return p;
 }
 function loadSample(){
@@ -1054,8 +1208,36 @@ function goPanel(p){const m=PANEL_META[p];const keys=panelPresent(PROFILE,p);con
     const sc=S.disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
     hdr='<div class="panelhdr"><div class="pdial">'+ringSVG(sc,dc,56,5)+'<div class="pct">'+sc+'</div></div><div><div class="pname">'+m.name+'</div><div class="pmeta">'+keys.length+' markers · '+bandOf(sc)+'</div></div></div>';
   }
-  const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">'+m.name+'</span><span class="navspacer"></span></div>'+hdr+cards;
+  const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">'+m.name+'</span><span class="navspacer"></span></div>'+hdr+
+    (p==='hormone'?hormoneInfoCard()+hormoneConfidenceBand():'')+cards;
   render(html,'push');}
+/* Hormone educational card — first-class, rendered before any hormone scores,
+   so informational states read as rigor, not missing functionality. */
+function hormoneInfoCard(){
+  return '<div class="hcard"><div class="hcard-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>How hormones are interpreted</div>'+
+    '<p>Hormone levels are unusually context-dependent. What counts as a typical value can vary substantially with sex, age, menstrual cycle phase, menopause status, pregnancy, hormonal contraception, and hormone therapies.</p>'+
+    '<p>Because of that, VitalVault scores a hormone only when it has enough context to interpret it meaningfully. When it doesn’t, the value is shown <strong>for reference</strong> rather than scored — that’s a deliberate choice to avoid misleading results, not a gap. Hormones are kept from influencing your biological-age estimate. Illustrative and non-diagnostic.</p></div>';
+}
+/* Hormone panel confidence: High / Moderate / Low based on how much of the
+   panel is actually interpretable (scored), with an explanation naming the
+   missing context. Reuses the scored-vs-informational distinction. */
+function hormoneConfidenceBand(){
+  const keys=panelPresent(PROFILE,'hormone');if(!keys.length)return '';
+  const scored=keys.filter(k=>isScorable(PROFILE,k));
+  const frac=scored.length/keys.length;
+  let band,note;
+  // gather recoverable reasons among informational hormone markers
+  const infoReasons=new Set(keys.filter(k=>!isScorable(PROFILE,k)).map(k=>isContextSpecific(k)?hormoneMode(PROFILE,k).reason:'sex'));
+  if(frac>=0.99){band='High';note='All entered hormones have enough context to interpret.';}
+  else if(frac>0){band='Moderate';
+    note='Testosterone and SHBG are interpreted; '+(infoReasons.has('sex')?'add your sex':infoReasons.has('phase')?'adding your cycle phase':'more context')+
+      (infoReasons.has('phase')?' would let us interpret estradiol and progesterone.':infoReasons.has('sex')?' to interpret the rest.':' would let us interpret the rest.');
+  }
+  else {band='Low';note=infoReasons.has('sex')?'Add your sex to interpret these hormones.':'These hormones are shown for reference given the context provided.';}
+  const col=band==='High'?'#48624F':band==='Moderate'?'#5E7E92':'#9A7426';
+  const bg=band==='High'?'#EDF2EE':band==='Moderate'?'#EAF0F3':'#FAF0DC';
+  return '<div class="hconf" style="background:'+bg+'"><div class="hconf-b" style="color:'+col+'">Interpretation confidence · '+band+'</div><div class="hconf-n">'+note+'</div></div>';
+}
 function goAllMarkers(){let html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' Results</button><span class="navtitle">All biomarkers</span><span class="navspacer"></span></div>';
   REPORT.ps.forEach(p=>{html+='<div class="eyebrow" style="margin-top:24px">'+PANEL_META[p].name+'</div>';panelPresent(PROFILE,p).forEach(k=>html+=bmCard(k));});render(html,'push');}
 function goMarker(k){const m=M[k];const panelName=PANEL_META[m[7]].name;const C=m[10];
@@ -1064,9 +1246,26 @@ function goMarker(k){const m=M[k];const panelName=PANEL_META[m[7]].name;const C=
   // PRESENT-BUT-UNSCORED (informational): value shown for reference, explained,
   // with a recovery prompt — no score, no scale, no bio-age effect.
   if(isInformational(PROFILE,k)){
-    const reason = isSexSpecific(k)
-      ? 'Creatinine is interpreted differently by sex, so we need your sex to score it accurately. Your value is shown here for reference.'
-      : 'This marker needs more context to interpret, so it’s shown here for reference rather than scored.';
+    // reason-aware message; recovery prompt ONLY for recoverable reasons
+    let reasonObj={reason:'sex'};
+    if(isContextSpecific(k))reasonObj=hormoneMode(PROFILE,k);
+    const rsn=reasonObj.reason;
+    const REASON_TEXT={
+      sex:'This marker is interpreted differently by sex, so we need your sex to score it accurately. Your value is shown here for reference.',
+      phase:'Estradiol and progesterone vary several-fold across the menstrual cycle, so a value can’t be meaningfully scored without knowing your cycle phase. It’s shown here for reference.',
+      pregnancy:'Pregnancy substantially changes hormone ranges — well beyond what general reference ranges capture — so this value is shown for reference rather than scored.',
+      contraception:'Hormonal contraception sets these levels directly, so the value reflects your medication rather than your own cycle. It’s shown here for reference.',
+      hrt:'This value reflects your hormone therapy rather than your body’s own production, so it’s shown for reference rather than scored.',
+      testosterone:'This value reflects your testosterone therapy rather than endogenous production, so it’s shown for reference.',
+      other:'Given the hormone medication noted, this value is shown for reference rather than scored.',
+      context:'This marker needs more context to interpret, so it’s shown here for reference rather than scored.'
+    };
+    const reason=REASON_TEXT[rsn]||REASON_TEXT.context;
+    const recoverable=RECOVERABLE_REASONS.has(rsn);
+    const recoverBtn = recoverable
+      ? (rsn==='sex' ? '<button class="refbtn" onclick="goStep1()">Add your sex to score this</button>'
+                     : '<button class="refbtn" onclick="goStep1()">Add your cycle phase to score this</button>')
+      : '';
     const collapsibleI=(icon,title,content)=>'<details class="mdcollapse"><summary>'+icon.replace('<svg ','<svg class="lead" ')+title+chev+'</summary><div class="inner">'+content+'</div></details>';
     let edu='';
     if(C){
@@ -1078,8 +1277,8 @@ function goMarker(k){const m=M[k];const panelName=PANEL_META[m[7]].name;const C=
     const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' '+panelName+'</button><span class="navtitle">'+m[0]+'</span><span class="navspacer"></span></div>'+
       '<div class="mdval"><div class="v">'+fmtVal(k)+'</div><div class="u">'+(m[2]||'')+'</div></div>'+
       '<div class="mdstat"><span class="badge" style="background:#EAF0F3;color:#5E7E92"><i style="background:#9DBED0"></i>Shown for reference</span></div>'+
-      '<div class="mdsection"><h4>'+ic('<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>')+'Not scored yet</h4><p>'+reason+'</p>'+
-        (isSexSpecific(k)?'<button class="refbtn" onclick="goStep1()">Add your sex to score this</button>':'')+'</div>'+
+      '<div class="mdsection"><h4>'+ic('<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>')+'Shown for reference</h4><p>'+reason+'</p>'+
+        recoverBtn+'</div>'+
       edu+
       '<div class="mdprivacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>In the full product, this value stays on your device — only its encrypted contribution is used.</div>';
     render(html,'push');return;

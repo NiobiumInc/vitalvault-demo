@@ -91,30 +91,32 @@ class Marker:
 # Panels (order is FIXED — it defines slot layout in the encrypted vector and
 # must never change once frozen, or old ciphertexts/keys become incompatible).
 # ---------------------------------------------------------------------------
-PANELS = ["core", "metabolic", "lipid", "inflammation", "liver", "kidney", "thyroid"]
+PANELS = ["core", "metabolic", "lipid", "inflammation", "liver", "kidney", "hormone", "thyroid"]
 
 # Panel "information weight" for the data-completeness/confidence score.
 # Reflects how much each panel informs the flagship outputs (Core anchors
 # bio-age and is always present; labs add progressively). NOT medical weight.
 PANEL_INFO_WEIGHT = {
-    "core": 0.32,
-    "metabolic": 0.20,
+    "core": 0.31,
+    "metabolic": 0.19,
     "lipid": 0.16,
     "inflammation": 0.08,
     "liver": 0.05,
     "kidney": 0.04,
+    "hormone": 0.02,
     "thyroid": 0.15,
 }
 
 # Composite-score panel weights (how panels combine into the overall
 # VitalScore). Renormalized client-side over PRESENT panels only.
 PANEL_COMPOSITE_WEIGHT = {
-    "core": 0.24,
-    "metabolic": 0.23,
-    "lipid": 0.19,
+    "core": 0.23,
+    "metabolic": 0.22,
+    "lipid": 0.18,
     "inflammation": 0.08,
     "liver": 0.06,
     "kidney": 0.05,
+    "hormone": 0.03,
     "thyroid": 0.15,
 }
 
@@ -231,6 +233,36 @@ MARKERS = [
            "affect it; most meaningful alongside eGFR.",
            sex_specific=True),
 
+    # ---- HORMONES (Release 1: all bio-age NEUTRAL, beta=0) -----------------
+    # Androgen group (sex-gated): testosterone, SHBG. Estrogen/cycle group
+    # (sex + context gated): estradiol, progesterone. Context gating lives in
+    # scoring.hormone_mode(); ranges below/CONTEXT_RANGES are ILLUSTRATIVE.
+    Marker("testosterone", "Testosterone", "ng/dL", 400.0, 300.0,
+           "~300-1000 (men), ~15-70 (women)",
+           U_SHAPED, 0.0, "hormone",
+           "Sex-specific ranges (SEX_RANGES); beta=0 (neutral, Release 1).",
+           "Diurnal (highest AM); strongly sex-specific; read with SHBG; "
+           "therapy/medications change meaning.",
+           sex_specific=True),
+    Marker("shbg", "SHBG", "nmol/L", 45.0, 30.0,
+           "~10-55 (men), ~25-120 (women)",
+           U_SHAPED, 0.0, "hormone",
+           "Sex-specific ranges (SEX_RANGES); beta=0 (neutral, Release 1).",
+           "Interpretive partner to testosterone; contraception raises it; "
+           "sex-specific."),
+    Marker("estradiol", "Estradiol", "pg/mL", 100.0, 80.0,
+           "~15-350 across cycle; lower post-meno; ~10-40 men",
+           U_SHAPED, 0.0, "hormone",
+           "CONTEXT-specific (phase/menopause/sex via CONTEXT_RANGES); beta=0.",
+           "Varies several-fold across the cycle; needs context (phase/"
+           "menopause/pregnancy/medication) to interpret."),
+    Marker("progesterone", "Progesterone", "ng/mL", 7.0, 7.0,
+           "<1 early-cycle to ~5-20 luteal; low men/post-meno",
+           U_SHAPED, 0.0, "hormone",
+           "CONTEXT-specific (phase/menopause/sex via CONTEXT_RANGES); beta=0.",
+           "Most timing-dependent hormone; uninterpretable without cycle "
+           "phase; near-floor most of the cycle, spikes in luteal phase."),
+
     # ---- THYROID -----------------------------------------------------------
     Marker("tsh", "TSH", "mIU/L", 1.8, 1.3, "~0.4-4.0 (common lab)",
            U_SHAPED, 0.3, "thyroid",
@@ -262,7 +294,42 @@ SEX_RANGES = {
         "male":   {"mid": 0.95, "hw": 0.35},
         "female": {"mid": 0.80, "hw": 0.30},
     },
+    "testosterone": {
+        "male":   {"mid": 550.0, "hw": 250.0},
+        "female": {"mid": 40.0,  "hw": 30.0},
+    },
+    "shbg": {
+        "male":   {"mid": 35.0, "hw": 25.0},
+        "female": {"mid": 70.0, "hw": 50.0},
+    },
 }
+
+# Context-specific ranges for the estrogen/cycle group (estradiol,
+# progesterone). Selected by hormone_mode() from sex + menopause + cycle phase.
+# ALL ILLUSTRATIVE — to be source-checked in the accuracy pass.
+CONTEXT_MARKERS = {"estradiol", "progesterone"}
+CONTEXT_RANGES = {
+    "estradiol": {
+        "male":              {"mid": 25.0,  "hw": 18.0},
+        "female_post":       {"mid": 15.0,  "hw": 12.0},
+        "female_follicular": {"mid": 55.0,  "hw": 40.0},
+        "female_ovulation":  {"mid": 250.0, "hw": 150.0},
+        "female_luteal":     {"mid": 150.0, "hw": 90.0},
+    },
+    "progesterone": {
+        "male":              {"mid": 0.4,  "hw": 0.4},
+        "female_post":       {"mid": 0.4,  "hw": 0.4},
+        "female_follicular": {"mid": 0.8,  "hw": 0.7},
+        "female_ovulation":  {"mid": 3.0,  "hw": 2.5},
+        "female_luteal":     {"mid": 12.0, "hw": 8.0},
+    },
+}
+# Recoverable informational reasons (drive prompts); others are intrinsic.
+RECOVERABLE_REASONS = {"sex", "phase"}
+
+
+def is_context_specific(key):
+    return key in CONTEXT_MARKERS
 
 
 def scoring_basis(sex):
