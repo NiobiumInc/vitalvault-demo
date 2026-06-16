@@ -219,20 +219,23 @@ const heart='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const spark='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>';
 const drop='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>';
 const flower='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 9V4M12 15v5M9 12H4M15 12h5"/></svg>';
+const flame='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 9 13 9 13c-1.5-.5-3-2-3-4 0 0-2 2-2 5a8 8 0 0 0 16 0c0-5-4-8-8-12z"/></svg>';
 
 /* ===== MODEL (ported from constants.py) ===== */
 const Z_CLAMP=3.0, FOLLOWUP_Z=2.0, PENALTY_SCALE=100.0/(Z_CLAMP*Z_CLAMP);
 const RHR_FLOOR=-2.0, UWIDE_LOW=0.35, BIOAGE_MAX_RED=8.0, BIOAGE_MAX_INC=10.0, DISPLAY_FLOOR=30.0;
+const CRP_ACUTE_CAP=10.0; // hs-CRP values above this reflect acute response; clamp for scoring so they don't dominate
 const U='u',DL='dl',DH='dh',UW='uw';
 const PENALTY_BASED=new Set([U,UW]);
 const OPTIONAL=new Set(['whtr','insulin']);
-const PANEL_COMPOSITE={core:.30,metabolic:.30,lipid:.25,thyroid:.15};
-const PANEL_INFO={core:.40,metabolic:.25,lipid:.20,thyroid:.15};
-const PANELS=['core','metabolic','lipid','thyroid'];
+const PANEL_COMPOSITE={core:.28,metabolic:.27,lipid:.22,inflammation:.08,thyroid:.15};
+const PANEL_INFO={core:.36,metabolic:.23,lipid:.18,inflammation:.08,thyroid:.15};
+const PANELS=['core','metabolic','lipid','inflammation','thyroid'];
 const PANEL_META={
   core:{name:'Core vitals',glyph:heart,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'},
   metabolic:{name:'Metabolic',glyph:spark,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
   lipid:{name:'Lipids',glyph:drop,tone:'#3F5B6B',tint:'#EAF0F3',edge:'#9DBED0'},
+  inflammation:{name:'Inflammation',glyph:flame,tone:'#9A7426',tint:'#FAF0DC',edge:'#E2A33C'},
   thyroid:{name:'Thyroid',glyph:flower,tone:'#7C9885',tint:'#EDF2EE',edge:'#7C9885'}
 };
 // key:[label, fn-subtitle, unit, mid, hw, shape, beta, panel, about, rangeText]
@@ -251,6 +254,14 @@ const M={
  ldl:['LDL Cholesterol','CIRCULATING CHOLESTEROL','mg/dL',90.0,35.0,DL,0.5,'lipid','The cholesterol that can build up in arteries. Lower is generally better.','<100'],
  tg:['Triglycerides','BLOOD FATS','mg/dL',90.0,50.0,DL,0.5,'lipid','Fat circulating in your blood. Lower is associated with better metabolic health.','<150'],
  tc:['Total Cholesterol','OVERALL LIPIDS','mg/dL',175.0,40.0,U,0.3,'lipid','The sum of cholesterol types — read alongside HDL and LDL.','<200'],
+ hscrp:['hs-CRP','SYSTEMIC INFLAMMATION','mg/L',0.5,2.5,DL,0.6,'inflammation','A marker of low-grade inflammation, which is one of the more studied themes in aging.','<1.0 mg/L',{
+   measures:"hs-CRP is a protein your liver releases in response to inflammation anywhere in the body. The “high-sensitivity” version can detect the low, chronic levels of inflammation that are relevant to long-term health — not just the high spikes of an active infection.",
+   why:"Low-grade, persistent inflammation is one of the more studied themes in aging and cardiovascular health. hs-CRP is among the most established markers for it, which is why it features prominently in longevity-oriented panels.",
+   typical:"Below 3.0 mg/L is the common reference — roughly: under 1.0 (lower relative inflammation), 1.0–3.0 (average), above 3.0 (higher).",
+   optimal:"Many longevity practitioners look for hs-CRP below 1.0 mg/L.",
+   influences:"hs-CRP is influenced by recent infections or illness, body composition, smoking, sleep, physical activity, and chronic conditions. It can rise temporarily after intense exercise or injury.",
+   caveats:"A single elevated reading often means something temporary — a cold, a recent workout, a minor injury — rather than chronic inflammation. Levels above ~10 mg/L usually point to an acute response and aren’t interpreted the same way as the low-grade range, so VitalVault caps their effect on your score. hs-CRP is best read as a trend across multiple tests rather than from one snapshot. Illustrative and non-diagnostic."
+ }],
  tsh:['TSH','THYROID SIGNAL','mIU/L',1.8,1.3,U,0.3,'thyroid','The hormone telling your thyroid how hard to work. Mid-range reflects balance.','0.4–4.0'],
  ft3:['Free T3','ACTIVE THYROID','pg/mL',3.3,0.7,U,0.2,'thyroid','The active thyroid hormone driving metabolism and energy.','2.3–4.2'],
  ft4:['Free T4','THYROID RESERVE','ng/dL',1.2,0.4,U,0.2,'thyroid','The thyroid hormone your body converts into its active form.','0.8–1.8']
@@ -259,7 +270,7 @@ const KEYS=Object.keys(M);
 function panelKeys(p){return KEYS.filter(k=>M[k][7]===p);}
 
 /* ===== SCORING (ported from scoring.py) ===== */
-function standardize(k,v){const m=M[k];return Math.max(-Z_CLAMP,Math.min(Z_CLAMP,(v-m[3])/m[4]));}
+function standardize(k,v){const m=M[k];if(k==='hscrp'&&v>CRP_ACUTE_CAP)v=CRP_ACUTE_CAP;return Math.max(-Z_CLAMP,Math.min(Z_CLAMP,(v-m[3])/m[4]));}
 function penalty(k,z){
   const shape=M[k][5],s=PENALTY_SCALE;
   if(shape===U)return s*z*z;
@@ -488,6 +499,7 @@ function step3(){return `
   <div class="secsub" style="text-align:center;margin-bottom:20px">All optional. Add any labs you have — each panel needs at least one value to score.</div>
   ${labGroup('metabolic','Metabolic',spark,'#3F5B6B','#EAF0F3',['glucose','a1c','insulin'])}
   ${labGroup('lipid','Lipids',drop,'#3F5B6B','#EAF0F3',['hdl','ldl','tg','tc'])}
+  ${labGroup('inflammation','Inflammation',flame,'#9A7426','#FAF0DC',['hscrp'])}
   ${labGroup('thyroid','Thyroid',flower,'#7C9885','#EDF2EE',['tsh','ft3','ft4'])}
   <button class="btn" onclick="finish()">See my results</button>
   <div class="skip" onclick="finish()">Skip labs — score from vitals only ›</div>`;
@@ -504,13 +516,13 @@ function engineer(raw){
   if(h&&w)p.bmi=+(w/((h/100)*(h/100))).toFixed(2);
   if(waist&&h)p.whtr=+(waist/h).toFixed(4);
   if(raw.activity_ord!=null)p.activity=+(raw.activity_ord/4).toFixed(3);
-  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
+  ['rhr','sbp','dbp','sleep','glucose','a1c','insulin','hdl','ldl','tg','tc','hscrp','tsh','ft3','ft4'].forEach(k=>{const v=num(raw[k]);if(v!=null)p[k]=v;});
   p._sex=raw.sex||null; // collected, unused
   return p;
 }
 function loadSample(){
   formData={age:44,sex:'female',height_cm:168,weight_kg:64,waist_cm:79,activity_ord:3,
-    rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,tsh:2.1,ft3:3.1};
+    rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,hscrp:0.8,tsh:2.1,ft3:3.1};
   PROFILE=engineer(formData);REPORT=computeReport(PROFILE);resetTo(overview());
 }
 
@@ -524,12 +536,19 @@ function overview(){
   const dt=deltaText(R.ba.delta);
   const compDisp=Math.round(displayScore(R.comp));const compBand=bandOf(displayScore(R.comp));
   let sysCards='';
-  R.ps.forEach(p=>{const m=PANEL_META[p];const sc=R.sys[p].disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
+  const FOUNDATIONAL=['core','metabolic','lipid'];
+  const cardFor=(p)=>{const m=PANEL_META[p];const sc=R.sys[p].disp;const dc=sc>=85?'#7C9885':'#3F5B6B';
     const np=panelPresent(R.prof,p).length;
-    sysCards+='<div class="syscard" onclick="goPanel(\''+p+'\')"><div class="sysedge" style="background:'+m.edge+'"></div><div class="sysbody">'+
+    return '<div class="syscard" onclick="goPanel(\''+p+'\')"><div class="sysedge" style="background:'+m.edge+'"></div><div class="sysbody">'+
       '<div class="sysglyph" style="background:'+m.tint+';color:'+m.tone+'">'+m.glyph+'</div><div class="sysdial">'+ringSVG(sc,dc,44,4)+'<div class="pct">'+sc+'</div></div>'+
-      '<div class="sysinfo"><div class="sysname">'+m.name+'</div><div class="syssum">'+np+' marker'+(np>1?'s':'')+' · '+bandOf(R.sys[p].disp)+'</div></div></div><div class="syschev">›</div></div>';
-  });
+      '<div class="sysinfo"><div class="sysname">'+m.name+'</div><div class="syssum">'+np+' marker'+(np>1?'s':'')+' · '+bandOf(R.sys[p].disp)+'</div></div></div><div class="syschev">›</div></div>';};
+  const foundPresent=R.ps.filter(p=>FOUNDATIONAL.includes(p));
+  const deepPresent=R.ps.filter(p=>!FOUNDATIONAL.includes(p));
+  foundPresent.forEach(p=>{sysCards+=cardFor(p);});
+  if(deepPresent.length){
+    sysCards+='<div class="eyebrow" style="margin-top:20px;margin-bottom:11px">Deeper systems</div>';
+    deepPresent.forEach(p=>{sysCards+=cardFor(p);});
+  }
   const absent=PANELS.filter(p=>!R.ps.includes(p));
   let absentNote=absent.length?'<div class="emptyline" style="text-align:center;margin-top:6px">Add '+absent.map(p=>PANEL_META[p].name).join(' or ')+' labs to unlock '+(absent.length>1?'those panels':'that panel')+'.</div>':'';
   const mxh=Math.max(1,...R.help.map(i=>i.mag)),mxd=Math.max(1,...R.hold.map(i=>i.mag));
@@ -604,15 +623,34 @@ function goAllMarkers(){let html='<div class="nav"><button class="back" onclick=
   REPORT.ps.forEach(p=>{html+='<div class="eyebrow" style="margin-top:24px">'+PANEL_META[p].name+'</div>';panelPresent(PROFILE,p).forEach(k=>html+=bmCard(k));});render(html,'push');}
 function goMarker(k){const m=M[k];const z=standardize(k,PROFILE[k]);const zone=zoneOf(k,z);const stat=markerStat(k,z);const sc=statColor(stat);
   const yrs=REPORT.terms[k]||0;const panelName=PANEL_META[m[7]].name;
-  const html='<div class="nav"><button class="back" onclick="pop()">'+BACK+' '+panelName+'</button><span class="navtitle">'+m[0]+'</span><span class="navspacer"></span></div>'+
+  const C=m[10]; // rich content object, present for piloted markers
+  const head='<div class="nav"><button class="back" onclick="pop()">'+BACK+' '+panelName+'</button><span class="navtitle">'+m[0]+'</span><span class="navspacer"></span></div>'+
     '<div class="mdval"><div class="v">'+fmtVal(k)+'</div><div class="u">'+(m[2]||'')+'</div></div>'+
     '<div class="mdstat"><span class="badge" style="'+(stat==='Optimal'?'background:var(--sage-tint)':stat==='Fair'?'background:var(--slate-tint)':'background:var(--amber-tint)')+';color:'+sc.c+'"><i style="background:'+sc.d+'"></i>'+stat+'</span></div>'+
-    '<div class="mdscale">'+segBar(zone)+'<div class="rangetxt">Typical range <b>'+m[9]+'</b></div></div>'+
-    '<div class="mdsection"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>What this measures</h4><p>'+m[8]+'</p></div>'+
-    '<div class="mdsection"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>How it shapes your results</h4>'+
-      '<div class="contribrow"><span class="cl">Effect on biological age</span><span class="cv" style="color:'+(yrs<=0?'#48624F':'#9A7426')+'">'+(yrs<=0?'−':'+')+Math.abs(yrs).toFixed(2)+' yr</span></div></div>'+
-    '<div class="mdprivacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>In the full product, this value stays on your device — only its encrypted contribution is used.</div>';
-  render(html,'push');}
+    '<div class="mdscale">'+segBar(zone)+'<div class="rangetxt">Typical range <b>'+(C?C.typical:m[9])+'</b></div></div>';
+  const ic=(p)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+  let body;
+  if(C){
+    // dynamic "how it affected your score" from zone + bio-age tier
+    const zoneWord=stat==='Optimal'?'in the optimal zone':stat==='Fair'?'a little outside the optimal zone':'outside its typical range';
+    const dirWord=zone>2?'higher than ideal':zone<2?'lower than ideal':'right where you want it';
+    const scoreLine='Your '+m[0]+' of '+fmtVal(k)+' '+(m[2]?m[2]+' ':'')+'is '+zoneWord+(zone!==2?' ('+dirWord+')':'')+', which '+(stat==='Optimal'?'contributes positively to':'slightly lowers')+' your '+panelName+' score.';
+    const bioLine=Math.abs(yrs)<0.005?' It had a negligible effect on your biological-age estimate.':' It factors into your biological-age estimate by '+(yrs<=0?'−':'+')+Math.abs(yrs).toFixed(2)+' yr.';
+    body=
+      '<div class="mdsection"><h4>'+ic('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>')+'What this measures</h4><p>'+C.measures+'</p></div>'+
+      '<div class="mdsection"><h4>'+ic('<path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/><path d="M9 21h6"/>')+'Why it matters</h4><p>'+C.why+'</p></div>'+
+      '<div class="mdsection"><h4>'+ic('<path d="M3 12h4l3-8 4 16 3-8h4"/>')+'How it affected your score</h4><p>'+scoreLine+bioLine+'</p></div>'+
+      '<div class="mdsection"><h4>'+ic('<path d="M4 7h16M4 12h16M4 17h10"/>')+'Typical &amp; optimal range</h4><p><b style="font-weight:600">Typical:</b> '+C.typical+'<br><b style="font-weight:600">Optimal:</b> '+C.optimal+'</p></div>'+
+      '<div class="mdsection"><h4>'+ic('<path d="M12 3v18M5 10l7-7 7 7"/>')+'What influences it</h4><p>'+C.influences+'</p></div>'+
+      '<div class="mdsection"><h4>'+ic('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>')+'Important caveats</h4><p>'+C.caveats+'</p></div>';
+  } else {
+    body=
+      '<div class="mdsection"><h4>'+ic('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>')+'What this measures</h4><p>'+m[8]+'</p></div>'+
+      '<div class="mdsection"><h4>'+ic('<path d="M3 12h4l3-8 4 16 3-8h4"/>')+'How it shapes your results</h4>'+
+        '<div class="contribrow"><span class="cl">Effect on biological age</span><span class="cv" style="color:'+(yrs<=0?'#48624F':'#9A7426')+'">'+(yrs<=0?'−':'+')+Math.abs(yrs).toFixed(2)+' yr</span></div></div>';
+  }
+  const priv='<div class="mdprivacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>In the full product, this value stays on your device — only its encrypted contribution is used.</div>';
+  render(head+body+priv,'push');}
 function goMarkerByName(sys,k){goPanel(sys);setTimeout(()=>goMarker(k),360);}
 let privOpen=false;function togglePriv(e){e.stopPropagation();privOpen=!privOpen;document.getElementById('pbody').classList.toggle('open',privOpen);document.getElementById('pchev').style.transform=privOpen?'rotate(180deg)':'';}
 
