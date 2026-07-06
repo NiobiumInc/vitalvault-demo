@@ -36,7 +36,7 @@ is obvious:
     - follow-up indicators (|z| > FOLLOWUP_Z)
 
 The functions are tagged in their docstrings with [CLIENT] or [SERVER] so the
-boundary is unambiguous when we port to .nb in Stage 7.
+boundary is unambiguous when we port to .niob in Stage 7.
 """
 
 from . import constants as C
@@ -114,7 +114,7 @@ def penalty(marker_key, z):
     Each shape is a smooth closure of {x, abs(x), consts} so it can be fitted
     by a single Chebyshev interpolant on [-Z_CLAMP, Z_CLAMP] and evaluated on
     the server with no data-dependent branch. These exact forms are mirrored
-    in server.nb so the encrypted output matches this ground truth.
+    in server.niob so the encrypted output matches this ground truth.
 
     Building blocks (branch-free one-sided ramps):
       pos(x) = (x + |x|)/2   == max(0, x)

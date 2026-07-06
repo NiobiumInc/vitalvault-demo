@@ -1,5 +1,5 @@
 # VitalVault — ignore all generated / runtime artifacts.
-# Only source is committed: *.nb, harness/*.py, README.md
+# Only source is committed: *.niob, harness/*.py, README.md
 # (and Makefile.vitalvault, which lives one level up in dsl_fhe/).
 #
 # ILLUSTRATIVE / DEMO-ONLY project. Generated keys and ciphertexts below are

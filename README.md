@@ -62,7 +62,7 @@ Screenshots of the landing, input flow, lab entry, and results views are in
 
 > **The FHE pipeline was verified separately in the backend prototype.** The
 > actual encrypted computation — server scoring on ciphertext it cannot
-> decrypt — was built and run as the `.nb` pipeline described in the rest of this
+> decrypt — was built and run as the `.niob` pipeline described in the rest of this
 > document. On the Toy profile it was run end-to-end and its decrypted output
 > matched the cleartext reference within CKKS noise (see §4). The browser demo
 > and the FHE pipeline share the *same scoring model*; they differ only in
@@ -362,10 +362,10 @@ done client-side (no in-circuit division), scoring weights are plaintext
 ```
 vitalvault/
   README.md            # this document (Stage 8)
-  shared.nb            # instance, directories, fixed 17-marker wire types
-  client.nb            # CKKS scheme block + key_generation / encrypt_profile /
+  shared.niob            # instance, directories, fixed 17-marker wire types
+  client.niob            # CKKS scheme block + key_generation / encrypt_profile /
                        #   decrypt_report stages (client holds the secret key)
-  server.nb            # compute_wellness: the encrypted scoring circuit
+  server.niob            # compute_wellness: the encrypted scoring circuit
   harness/             # Stage-3 cleartext ground truth (Python)
     constants.py       # reviewable scoring framework — reference ranges, weights,
                        #   bio-age betas (all ILLUSTRATIVE, with provenance notes)
@@ -410,7 +410,7 @@ ground truth that every encrypted version is checked against.
    indicator — counting multiplicative depth explicitly.
 6. **Parameters.** Set depth 20 / ring 65536 / 128-classic / no bootstrapping and
    confirmed the budget with `nbc check`.
-7. **Implementation.** Wrote `shared.nb` / `client.nb` / `server.nb`, compiled to
+7. **Implementation.** Wrote `shared.niob` / `client.niob` / `server.niob`, compiled to
    OpenFHE C++, and debugged by comparing decrypted intermediates against the
    plaintext twin until the encrypted output matched (Section 4).
 8. **Protocol & threat model.** This document — what each party sees, what is and

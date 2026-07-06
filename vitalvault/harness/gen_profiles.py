@@ -105,7 +105,7 @@ def emit_profile(name, profile, n_slots=N_SLOTS_TOY, out_dir=None):
     """Write zvec.bin, wmask.bin (padded to n_slots rows) + reference.json.
 
     out_dir overrides the io subdirectory name. The encrypted binaries read
-    from io/<instance_name> (e.g. io/toy or io/full per shared.nb:iodir), which
+    from io/<instance_name> (e.g. io/toy or io/full per shared.niob:iodir), which
     differs from the persona `name`, so the Makefile passes out_dir="toy" to
     place the data where the Toy-profile binary looks for it.
     """

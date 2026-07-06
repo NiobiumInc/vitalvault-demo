@@ -1,4 +1,4 @@
-// shared.nb — Types and constants for VitalVault privacy-preserving biomarker analytics
+// shared.niob — Types and constants for VitalVault privacy-preserving biomarker analytics
 //============================================================================
 // ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE. NOT FOR CLINICAL USE.
 //
@@ -23,7 +23,7 @@
 //     infer which labs were provided (privacy invariant).
 //   - Parameters: CKKS, ring_dim 65536 (hardware target), 128-classic,
 //     depth 20, first_mod 60, q_i 50; critical path ~15 (follow-up branch),
-//     NO bootstrapping. See client.nb scheme block + the nbc check note.
+//     NO bootstrapping. See client.niob scheme block + the nbc check note.
 //============================================================================
 
 enum Profile { Toy, Full }

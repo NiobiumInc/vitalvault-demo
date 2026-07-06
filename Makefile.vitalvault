@@ -31,9 +31,9 @@ vitalvault:
 	@echo "=== Compiling VitalVault (DSL -> C++) ==="
 	@mkdir -p $(VV_NB_OUT)
 	@cd $(XCOMP) && python3 nbc.py compile \
-		../$(VV_DIR)/shared.nb \
-		../$(VV_DIR)/client.nb \
-		../$(VV_DIR)/server.nb \
+		../$(VV_DIR)/shared.niob \
+		../$(VV_DIR)/client.niob \
+		../$(VV_DIR)/server.niob \
 		--outdir ../$(VV_NB_OUT)
 	@echo ""
 	@echo "=== Building VitalVault (C++ -> binaries) ==="
@@ -47,7 +47,7 @@ vitalvault:
 # --- Semantic check only (no build; runs anywhere) --------------------------
 vitalvault-check:
 	@cd $(XCOMP) && python3 nbc.py check \
-		../$(VV_DIR)/shared.nb ../$(VV_DIR)/client.nb ../$(VV_DIR)/server.nb
+		../$(VV_DIR)/shared.niob ../$(VV_DIR)/client.niob ../$(VV_DIR)/server.niob
 
 # --- Stage-3 ground truth (cleartext; runs anywhere) ------------------------
 vitalvault-cohort:
