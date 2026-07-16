@@ -377,9 +377,27 @@ vitalvault/
     index.html         # interactive browser demo — local JS scoring (NOT FHE),
                        #   faithful port of the harness model (see §0)
   screenshots/         # landing, input flow, lab entry, and results views
+third_party/
+  niobium-client/      # git submodule (NiobiumInc/niobium-client, pinned): the
+                       #   Niobium DSL compiler (dsl_fhe/xcomp/nbc.py) + the
+                       #   fhetch / OpenFHE toolchain that builds the .niob
+                       #   pipeline. Keeps its own license; VitalVault is
+                       #   Apache-2.0.
 ```
 
-Build/test is driven by `Makefile.vitalvault` (kept beside `dsl_fhe/Makefile`):
+### Getting the code
+
+The DSL compiler and FHE toolchain live in a **git submodule** at
+`third_party/niobium-client`, so clone recursively:
+
+```bash
+git clone --recurse-submodules https://github.com/leila-db/vitalvault-demo.git
+# already cloned without it? initialize the submodules in place:
+git submodule update --init --recursive
+```
+
+Build/test is driven by `Makefile.vitalvault` at the repo root (it invokes the
+compiler inside the submodule):
 
 - `make -f Makefile.vitalvault vitalvault-check` — instant DSL validation.
 - `make -f Makefile.vitalvault vitalvault-cohort` — print personas + synthetic cohort (no build).

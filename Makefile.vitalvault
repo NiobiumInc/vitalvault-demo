@@ -2,22 +2,31 @@
 # ===========================================================================
 # ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE. NOT FOR CLINICAL USE.
 #
-# Run from the dsl_fhe/ directory so paths resolve like the main Makefile:
+# Run from the repository root (where this file lives):
+#     make -f Makefile.vitalvault vitalvault-check  # DSL semantic check (no build)
 #     make -f Makefile.vitalvault vitalvault        # DSL -> C++ -> binaries
 #     make -f Makefile.vitalvault test-vitalvault   # full record->replay->decrypt
 #
-# Requires the niobium-client stack to be built first (from the repo root):
-#     make build-release
+# The Niobium DSL compiler + FHE toolchain live in the vendored submodule at
+# third_party/niobium-client (clone this repo with --recurse-submodules). The
+# encrypted build/test targets additionally require that client stack to be
+# built once:
+#     make -C third_party/niobium-client build-release
 # which provides vendor/lib/openfhe and libnbfhetch. WITHOUT that, only the
-# DSL->C++ compile step (which needs no FHE runtime) will succeed.
+# DSL->C++ compile and vitalvault-check steps (which need no FHE runtime) will
+# succeed.
 # ===========================================================================
 
-XCOMP     := xcomp
-EXAMPLES  := examples
-NPROC     := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
-NIOBIUM_CLIENT_ROOT ?= $(realpath $(CURDIR)/..)
+# Standalone-repo layout: this Makefile lives at the repo root, the Niobium
+# client is vendored as a git submodule under third_party/, and the VitalVault
+# example is a top-level directory. Paths are absolute so recipes can `cd` into
+# the compiler directory without breaking relative references.
+REPO_ROOT           := $(CURDIR)
+NIOBIUM_CLIENT_ROOT ?= $(REPO_ROOT)/third_party/niobium-client
+XCOMP               := $(NIOBIUM_CLIENT_ROOT)/dsl_fhe/xcomp
+NPROC               := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
-VV_DIR    := $(EXAMPLES)/vitalvault
+VV_DIR    := $(REPO_ROOT)/vitalvault
 VV_NB_OUT := $(VV_DIR)/nb_out
 
 LD_LIB_PATH := $(NIOBIUM_CLIENT_ROOT)/vendor/lib/openfhe/lib:$(NIOBIUM_CLIENT_ROOT)/build/vendor/niobium-fhetch:$(NIOBIUM_CLIENT_ROOT)/vendor/niobium-fhetch/build:$(NIOBIUM_CLIENT_ROOT)/build/_deps/yaml_cpp-build
@@ -31,10 +40,10 @@ vitalvault:
 	@echo "=== Compiling VitalVault (DSL -> C++) ==="
 	@mkdir -p $(VV_NB_OUT)
 	@cd $(XCOMP) && python3 nbc.py compile \
-		../$(VV_DIR)/shared.niob \
-		../$(VV_DIR)/client.niob \
-		../$(VV_DIR)/server.niob \
-		--outdir ../$(VV_NB_OUT)
+		$(VV_DIR)/shared.niob \
+		$(VV_DIR)/client.niob \
+		$(VV_DIR)/server.niob \
+		--outdir $(VV_NB_OUT)
 	@echo ""
 	@echo "=== Building VitalVault (C++ -> binaries) ==="
 	@mkdir -p $(VV_NB_OUT)/build
@@ -47,7 +56,7 @@ vitalvault:
 # --- Semantic check only (no build; runs anywhere) --------------------------
 vitalvault-check:
 	@cd $(XCOMP) && python3 nbc.py check \
-		../$(VV_DIR)/shared.niob ../$(VV_DIR)/client.niob ../$(VV_DIR)/server.niob
+		$(VV_DIR)/shared.niob $(VV_DIR)/client.niob $(VV_DIR)/server.niob
 
 # --- Stage-3 ground truth (cleartext; runs anywhere) ------------------------
 vitalvault-cohort:
