@@ -377,27 +377,37 @@ vitalvault/
     index.html         # interactive browser demo — local JS scoring (NOT FHE),
                        #   faithful port of the harness model (see §0)
   screenshots/         # landing, input flow, lab entry, and results views
-third_party/
-  niobium-client/      # git submodule (NiobiumInc/niobium-client, pinned): the
-                       #   Niobium DSL compiler (dsl_fhe/xcomp/nbc.py) + the
-                       #   fhetch / OpenFHE toolchain that builds the .niob
-                       #   pipeline. Keeps its own license; VitalVault is
-                       #   Apache-2.0.
+vendor/
+  fhe_dsl/             # vendored (source-only) Niobium DSL compiler (xcomp/) +
+                       #   docs + license/provenance. Apache-2.0.
+  runtime.lock         # pinned source commit the native FHE runtime is built from
+  fhe_runtime/         # git-ignored: native OpenFHE/FHETCH runtime + fhetch_driver,
+                       #   provisioned locally by serve/fetch_runtime.sh
+serve/
+  fhe_bridge.py        # local bridge: serves the UI + runs the FHE stage binaries
+  run.sh               # one-command setup + run  (see serve/README.md)
+  fetch_runtime.sh     # builds vendor/fhe_runtime from the pinned source
 ```
 
 ### Getting the code
 
-The DSL compiler and FHE toolchain live in a **git submodule** at
-`third_party/niobium-client`, so clone recursively:
+No git submodule is required. The DSL compiler is vendored (source-only) at
+`vendor/fhe_dsl/`; the native FHE runtime is built locally on first setup into
+the git-ignored `vendor/fhe_runtime/` from the source commit pinned in
+`vendor/runtime.lock`.
 
 ```bash
-git clone --recurse-submodules https://github.com/leila-db/vitalvault-demo.git
-# already cloned without it? initialize the submodules in place:
-git submodule update --init --recursive
+git clone https://github.com/leila-db/vitalvault-demo.git
+cd vitalvault-demo
+./serve/run.sh          # first run provisions the runtime from the pinned source
+                        # (needs internet, 10-30+ min), then builds + serves the app
 ```
 
+See [`serve/README.md`](serve/README.md) for the full run/setup flow, requirements,
+and the from-source runtime build (`./serve/fetch_runtime.sh --build-runtime`).
+
 Build/test is driven by `Makefile.vitalvault` at the repo root (it invokes the
-compiler inside the submodule):
+vendored compiler in `vendor/fhe_dsl/xcomp` against `vendor/fhe_runtime`):
 
 - `make -f Makefile.vitalvault vitalvault-check` — instant DSL validation.
 - `make -f Makefile.vitalvault vitalvault-cohort` — print personas + synthetic cohort (no build).
