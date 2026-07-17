@@ -7,26 +7,23 @@
 #     make -f Makefile.vitalvault vitalvault        # DSL -> C++ -> binaries
 #     make -f Makefile.vitalvault test-vitalvault   # full record->replay->decrypt
 #
-# The Niobium DSL compiler is vendored (source only) at vendor/fhe_dsl/xcomp.
-# The native FHE runtime (OpenFHE + FHETCH headers/libs + fhetch_driver +
-# autofacade) is provisioned into the git-ignored vendor/fhe_runtime/ by:
-#     ./serve/fetch_runtime.sh --build-runtime
-# which builds it from the pinned source. WITHOUT that runtime, only the
+# The Niobium DSL compiler + FHE toolchain live in the vendored submodule at
+# third_party/niobium-client (clone this repo with --recurse-submodules). The
+# encrypted build/test targets additionally require that client stack to be
+# built once:
+#     make -C third_party/niobium-client build-release
+# which provides vendor/lib/openfhe and libnbfhetch. WITHOUT that, only the
 # DSL->C++ compile and vitalvault-check steps (which need no FHE runtime) will
-# succeed. (serve/run.sh provisions the runtime automatically.)
+# succeed.
 # ===========================================================================
 
-# Standalone-repo layout: this Makefile lives at the repo root, the DSL compiler
-# is vendored (source) under vendor/fhe_dsl, the native FHE runtime is provisioned
-# git-ignored under vendor/fhe_runtime, and the VitalVault example is a top-level
-# directory. Paths are absolute so recipes can `cd` into the compiler directory
-# without breaking relative references.
+# Standalone-repo layout: this Makefile lives at the repo root, the Niobium
+# client is vendored as a git submodule under third_party/, and the VitalVault
+# example is a top-level directory. Paths are absolute so recipes can `cd` into
+# the compiler directory without breaking relative references.
 REPO_ROOT           := $(CURDIR)
-# Native FHE runtime (headers + libs + fhetch_driver), provisioned git-ignored by
-# serve/fetch_runtime.sh. Mirrors the subpath layout the generated CMake expects.
-NIOBIUM_CLIENT_ROOT ?= $(REPO_ROOT)/vendor/fhe_runtime
-# DSL cross-compiler, vendored (source only) under vendor/fhe_dsl.
-XCOMP               := $(REPO_ROOT)/vendor/fhe_dsl/xcomp
+NIOBIUM_CLIENT_ROOT ?= $(REPO_ROOT)/third_party/niobium-client
+XCOMP               := $(NIOBIUM_CLIENT_ROOT)/dsl_fhe/xcomp
 NPROC               := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
 VV_DIR    := $(REPO_ROOT)/vitalvault
@@ -36,8 +33,8 @@ LD_LIB_PATH := $(NIOBIUM_CLIENT_ROOT)/vendor/lib/openfhe/lib:$(NIOBIUM_CLIENT_RO
 NBCC_FHETCH_DRIVER ?= $(NIOBIUM_CLIENT_ROOT)/vendor/niobium-fhetch/build/tests/fhetch_driver/fhetch_driver
 export NBCC_FHETCH_DRIVER
 
-# OpenFHE install location inside the provisioned runtime (vendor/fhe_runtime).
-# Provisioned by serve/fetch_runtime.sh; reused (never rebuilt) here.
+# OpenFHE install produced by `make -C third_party/niobium-client build-release`.
+# Reused (never rebuilt) when building fhetch_driver below.
 OPENFHE_INSTALL_DIR ?= $(NIOBIUM_CLIENT_ROOT)/vendor/lib/openfhe
 
 .PHONY: vitalvault test-vitalvault vitalvault-check vitalvault-cohort clean-vitalvault
@@ -75,13 +72,17 @@ vitalvault-cohort:
 # four-stage encrypted pipeline (key_generation -> encrypt_profile ->
 # compute_wellness -> decrypt_report), then runs the cleartext reference twins
 # and confirms the decrypted scores match reference.json within tolerance.
-# The cooperative-replay helper compute_wellness spawns. It is part of the native
-# FHE runtime, provisioned by serve/fetch_runtime.sh into vendor/fhe_runtime/
-# (built from the pinned source, or downloaded). It is NOT built here anymore.
+# The cooperative-replay helper compute_wellness spawns. It is NOT produced by
+# `make -C third_party/niobium-client build-release` (that populates build/
+# only); it lives in the niobium-fhetch submodule's own build tree. Build it
+# via the submodule's official config+build targets, reusing the already-
+# installed OpenFHE (EXTERNAL_OPENFHE=1) so OpenFHE is not recompiled. As a
+# file target this runs only when the binary is absent.
 $(NBCC_FHETCH_DRIVER):
-	@echo "ERROR: fhetch_driver missing at $@"
-	@echo "       Provision the native runtime first:  ./serve/fetch_runtime.sh --build-runtime"
-	@exit 1
+	$(MAKE) -C $(NIOBIUM_CLIENT_ROOT)/vendor/niobium-fhetch \
+		EXTERNAL_OPENFHE=1 \
+		OPENFHE_INSTALL_DIR=$(OPENFHE_INSTALL_DIR) \
+		config-fhetch-release build-release
 
 test-vitalvault: vitalvault $(NBCC_FHETCH_DRIVER)
 	@echo ""

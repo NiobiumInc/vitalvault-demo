@@ -856,6 +856,7 @@ function setUnit(dim,u){
 function step1(){return `
   <div class="nav"><button class="back" onclick="pop()">${BACK}</button><span class="navtitle">About you</span><span class="navspacer"></span></div>
   ${dots(0)}
+  ${SAMPLE_LOADED?`<div style="text-align:center;font-size:12.5px;color:#2f6b45;background:#eaf3ee;border:1px solid #bcd9c6;border-radius:8px;padding:8px 10px;margin:0 0 16px">✓ Sample data loaded — review and edit any value on each screen, then submit from the final review.</div>`:''}
   <div class="secsub" style="text-align:center;margin-bottom:22px">A few basics to anchor your results.</div>
   ${field('age','Age','years',false)}
   <div class="field"><label>Sex <span class="opt">· used to interpret some markers</span></label>
@@ -922,7 +923,7 @@ function finish(){
   // If any hormone marker was entered, collect interpretation context first.
   const hormoneEntered=['testosterone','shbg','estradiol','progesterone'].some(k=>formData[k]!=null&&formData[k]!=='');
   if(hormoneEntered){ render(hormoneContext(),'push'); return; }
-  commitResults();
+  render(reviewScreen(),'push');
 }
 function commitResults(){
   PROFILE=engineer(formData);
@@ -965,7 +966,45 @@ function pickCtx(field,v,btn){
   if(wrap)wrap.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
 }
-function finishContext(){ commitResults(); }
+function finishContext(){ render(reviewScreen(),'push'); }
+
+/* ===== final review screen (both manual and sample data reach this) =========
+   Shows every entered value grouped by section, editable via Back, and only
+   starts the FHE pipeline when the user explicitly submits here. */
+const REVIEW_GROUPS=[
+  ['About you',[['age','Age','yrs'],['sex','Sex',''],['height_cm','Height','cm'],['weight_kg','Weight','kg'],['waist_cm','Waist','cm'],['activity_ord','Activity level','0–4']]],
+  ['Core vitals',[['rhr','Resting heart rate','bpm'],['sbp','Systolic BP','mmHg'],['dbp','Diastolic BP','mmHg'],['sleep','Sleep','hrs']]],
+  ['Metabolic',[['glucose','Fasting glucose','mg/dL'],['a1c','HbA1c','%'],['insulin','Fasting insulin','µIU/mL']]],
+  ['Lipids',[['hdl','HDL','mg/dL'],['ldl','LDL','mg/dL'],['tg','Triglycerides','mg/dL'],['tc','Total cholesterol','mg/dL']]],
+  ['Inflammation',[['hscrp','hs-CRP','mg/L']]],
+  ['Liver',[['alt','ALT','U/L'],['ast','AST','U/L']]],
+  ['Kidney',[['creatinine','Creatinine','mg/dL']]],
+  ['Hormones',[['testosterone','Testosterone','ng/dL'],['shbg','SHBG','nmol/L'],['estradiol','Estradiol','pg/mL'],['progesterone','Progesterone','ng/mL'],['menopause','Menopause status',''],['cyclephase','Cycle phase','']]],
+  ['Thyroid',[['tsh','TSH','mIU/L'],['ft3','Free T3','pg/mL'],['ft4','Free T4','ng/dL']]],
+];
+function reviewScreen(){
+  const has=v=>v!=null&&v!=='';
+  let count=0, groupsShown=0, body='';
+  REVIEW_GROUPS.forEach(([title,rows])=>{
+    const present=rows.filter(([k])=>has(formData[k]));
+    if(!present.length)return;
+    groupsShown++;
+    const items=present.map(([k,lbl,unit])=>{ count++;
+      const val=(k==='sex')?(formData[k]==='none'?'Prefer not to say':formData[k])
+               :(k==='activity_ord'?formData[k]+' / 4':formData[k]+(unit?' '+unit:''));
+      return `<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #eef2f3">
+                <span style="color:#5e7e92">${lbl}</span><span style="color:#2b3f4a;font-weight:600">${val}</span></div>`;
+    }).join('');
+    body+=`<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9aabb3;margin-bottom:4px">${title}</div>${items}</div>`;
+  });
+  return `
+  <div class="nav"><button class="back" onclick="pop()">${BACK}</button><span class="navtitle">Review &amp; submit</span><span class="navspacer"></span></div>
+  <div class="secsub" style="text-align:center;margin-bottom:14px">You're submitting <b>${count}</b> value${count===1?'':'s'} across <b>${groupsShown}</b> section${groupsShown===1?'':'s'}. Review and edit, then run the encrypted analysis.</div>
+  <div class="mdprivacy" style="margin-bottom:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>These values are encrypted on your device; the evaluator computes on ciphertext and never sees them or your secret key.</div>
+  ${body}
+  <button class="btn" onclick="commitResults()">Run encrypted analysis</button>
+  <div class="skip" onclick="pop()">← Go back and edit</div>`;
+}
 function engineer(raw){
   const p={};const num=v=>v===''||v==null?null:parseFloat(v);
   p.age=num(raw.age);
@@ -982,10 +1021,14 @@ function engineer(raw){
   p.pregnant=raw.pregnant===true||raw.pregnant==='yes'||null;
   return p;
 }
+let SAMPLE_LOADED=false;
 function loadSample(){
   formData={age:44,sex:'female',height_cm:168,weight_kg:64,waist_cm:79,activity_ord:3,
     rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,hscrp:0.8,alt:24,ast:21,creatinine:0.82,tsh:2.1,ft3:3.1};
-  PROFILE=engineer(formData);runFullFHE();   // sample data also runs real Full FHE
+  SAMPLE_LOADED=true;
+  // Sample data does NOT auto-run FHE: it pre-fills the form so the user walks
+  // every screen, can review/edit each value, and submits from the review screen.
+  startForm();
 }
 
 /* ===== OVERVIEW ===== */
@@ -1133,7 +1176,17 @@ function fheProvenance(){
     </details>
   </div>`;
 }
-const FHE_STEPS=[['keygen','Generating keys'],['encrypt','Encrypting'],['compute','Computing on ciphertext'],['decrypt','Decrypting']];
+const FHE_STEPS=[['keygen','Generating encryption keys'],['encrypt','Encrypting profile'],['compute','Computing on encrypted data'],['decrypt','Decrypting results']];
+// Typical per-stage seconds (16 GB target) — used ONLY for a labeled, rough
+// remaining-time RANGE; never a precise percentage. compute dominates.
+const FHE_STEP_EST={keygen:8,encrypt:8,compute:185,decrypt:8};
+let FHE_DONE=new Set();
+function fheEtaText(){
+  let rem=0; FHE_STEPS.forEach(([id])=>{ if(!FHE_DONE.has(id)) rem+=(FHE_STEP_EST[id]||0); });
+  if(rem<=0) return 'finishing…';
+  const lo=Math.max(1,Math.round(rem/60)), hi=Math.max(lo+1,Math.round(rem*2.5/60));
+  return 'Estimated remaining ~'+lo+'–'+hi+' min (rough estimate — varies with hardware)';
+}
 function fheProgressView(){
   const rows=FHE_STEPS.map(([id,lbl])=>
     `<div class="fstep" style="display:flex;align-items:center;gap:10px;padding:9px 0;font-size:14px">
@@ -1146,16 +1199,18 @@ function fheProgressView(){
     <div class="brand" style="justify-content:center;margin-bottom:22px"><svg width="34" height="34" viewBox="0 0 80 80"><path d="M16 22 A30 30 0 1 0 64 22" fill="none" stroke="#3F5B6B" stroke-width="7" stroke-linecap="round"/><path d="M28 30 L40 52 L52 30" fill="none" stroke="#7C9885" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div style="text-align:center;font-weight:650;color:#2b3f4a;font-size:17px;margin-bottom:6px">Running the encrypted computation</div>
     <div style="text-align:center;font-size:13px;color:#5e7e92;line-height:1.55;margin-bottom:10px">Your data is encrypted and processed as ciphertext.</div>
-    <div style="text-align:center;font-size:12px;color:#9a7426;background:#faf0dc;border:1px solid #e6cf9c;border-radius:8px;padding:8px 10px;margin:0 0 20px">This can take several minutes. Please keep this tab open while the encrypted computation finishes.</div>
+    <div style="text-align:center;font-size:12px;color:#9a7426;background:#faf0dc;border:1px solid #e6cf9c;border-radius:8px;padding:8px 10px;margin:0 0 20px">Usually takes several minutes, depending on your hardware. Please keep this tab open while the encrypted computation finishes.</div>
     <div style="max-width:320px;margin:0 auto">${rows}</div>
-    <div id="fhe_elapsed" style="text-align:center;font-size:12px;color:#9aabb3;margin-top:18px"></div>
+    <div id="fhe_elapsed" style="text-align:center;font-size:12px;color:#5e7e92;margin-top:18px">elapsed 0s</div>
+    <div id="fhe_eta" style="text-align:center;font-size:11px;color:#9aabb3;margin-top:4px"></div>
   </div>`;
 }
 function fheSetStep(id,state,ms){
   const dot=document.getElementById('dot_'+id),lbl=document.getElementById('lbl_'+id),mss=document.getElementById('ms_'+id);
   if(!dot)return;
   if(state==='run'){ dot.style.borderColor='#3F5B6B';dot.style.borderTopColor='transparent';dot.style.animation='vvspin .8s linear infinite';lbl.style.color='#2b3f4a';lbl.style.fontWeight='600'; }
-  else if(state==='done'){ dot.style.animation='';dot.style.background='#7C9885';dot.style.borderColor='#7C9885';lbl.style.color='#5e7e92';lbl.style.fontWeight='400'; if(ms!=null)mss.textContent=(ms/1000).toFixed(1)+'s'; }
+  else if(state==='done'){ dot.style.animation='';dot.style.background='#7C9885';dot.style.borderColor='#7C9885';lbl.style.color='#5e7e92';lbl.style.fontWeight='400'; if(ms!=null)mss.textContent=(ms/1000).toFixed(1)+'s'; FHE_DONE.add(id); }
+  const eta=document.getElementById('fhe_eta'); if(eta)eta.textContent=fheEtaText();
 }
 function fheErrorView(msg){
   return `
@@ -1170,7 +1225,9 @@ function fheErrorView(msg){
 }
 async function runFullFHE(){
   if(!PROFILE){resetTo(fheErrorView('No profile submitted.'));return;}
+  FHE_DONE=new Set();
   resetTo(fheProgressView());
+  const eta0=document.getElementById('fhe_eta'); if(eta0)eta0.textContent=fheEtaText();
   const started=Date.now();
   const tick=setInterval(()=>{const el=document.getElementById('fhe_elapsed');if(el)el.textContent='elapsed '+Math.round((Date.now()-started)/1000)+'s';},1000);
   try{

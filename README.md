@@ -18,81 +18,71 @@ build it.
 
 ---
 
-## 0. Try the interactive demo
+## 0. Run the app
 
-The quickest way to understand VitalVault is to use it. The repo includes a
-self-contained browser demo at **`ui/index.html`** — enter your own age, vitals,
-and (optionally) lab values, and it produces a personalized biological-age
-estimate, system scores, drivers, and follow-up nudges.
+VitalVault is a **real Full-FHE application**, not a webpage preview. You enter
+(or load sample) health values in a local browser UI, and the scoring runs under
+**CKKS fully homomorphic encryption on your own machine**: the evaluator computes
+on ciphertext and never sees your plaintext inputs or secret key. The results
+page is populated **only** from the decrypted FHE output — there is **no Toy mode
+and no JavaScript-scoring fallback** for anything the user sees. (A JS port of the
+model remains in the page solely as a hidden development oracle for accuracy
+checks.)
 
-### Run it locally
+### Requirements
 
-It's a single static HTML file with no build step and no dependencies, so any of
-these works from a terminal:
+**Apple-silicon macOS (arm64, M1 or newer)**; **16 GB RAM recommended** (8 GB
+works but swaps → slower); ~**4 GB** free disk while running; Xcode Command Line
+Tools, `cmake`, `python3` (3.10+), `git`. The DSL compiler + FHE toolchain
+(OpenFHE / FHETCH / `fhetch_driver`) ship as the pinned
+`third_party/niobium-client` **git submodule**.
+
+### Clone, build, run
 
 ```bash
-# macOS — open in your default browser
-open ui/index.html
-
-# Linux
-xdg-open ui/index.html
-
-# or serve it (any OS) if you prefer a localhost URL — useful for testing on a
-# phone over the same network:
-cd ui
-python3 -m http.server 8000
-# then visit http://localhost:8000/  (or http://<your-ip>:8000/ from a phone)
+git clone --recurse-submodules <repo-url>
+cd <repo-folder>
+./serve/run.sh          # first run builds the submodule toolchain (needs internet,
+                        # ~15-30+ min), then builds the stage binaries and serves
 ```
 
-There's nothing to install. On the welcome screen you can either enter your own
-values or tap *"explore with sample data"* for an instant populated dashboard.
+Open **http://127.0.0.1:8010/** in a browser (start the bridge from a Terminal —
+do **not** open `ui/index.html` directly; the page needs the local bridge).
+Already cloned without submodules? `git submodule update --init --recursive`.
 
-### What the demo actually computes — read this
+### Parameters, flow, and timing
 
-> **The browser demo runs entirely in local JavaScript. It is NOT the FHE
-> pipeline.** The scoring you see is computed in your browser by a JavaScript
-> *port* of the Python scoring harness (`harness/scoring.py` + `constants.py`).
-> It mirrors that model closely — the same standardization, per-marker penalty
-> curves, biological-age terms, optional-field masking, and confidence logic —
-> so the numbers are representative of what the real system produces. But no
-> encryption happens on this page; nothing is sent anywhere; it is a design and
-> scoring demonstration, not a privacy demonstration.
+Real CKKS at **ring 65536, depth 20, 128-classic security**, over the fixed
+**25-marker / 8-panel** model. Each submission runs the full pipeline —
+**key generation → encryption → computation on ciphertext → decryption** — shown
+as live streamed progress. The ciphertext-computation stage dominates, so **each
+run takes several minutes** (≈3 min on 16 GB; longer on 8 GB). The **first build
+of the toolchain is the one long, one-time step** (~15–30+ min).
 
-> **The FHE pipeline was verified separately in the backend prototype.** The
-> actual encrypted computation — server scoring on ciphertext it cannot
-> decrypt — was built and run as the `.niob` pipeline described in the rest of this
-> document. On the Toy profile it was run end-to-end and its decrypted output
-> matched the cleartext reference within CKKS noise (see §4). The browser demo
-> and the FHE pipeline share the *same scoring model*; they differ only in
-> *where and how* the computation happens.
+Sample data does **not** auto-run: it fills the form so you can walk every screen,
+review and edit each value, and submit from a final review screen — FHE begins
+only on that submit. Manual and sample entry follow the exact same path.
 
-### Demo path vs. future FHE path
+### Privacy boundary
 
-|  | **Browser demo (today)** | **FHE path (the real product)** |
-|---|---|---|
-| Where scoring runs | In your browser, in JavaScript | On a server, on encrypted data it cannot read |
-| What the math is | A faithful port of the scoring harness | The same model, compiled to an FHE circuit |
-| Privacy | None claimed — it's all local, nothing sent | The server never sees plaintext; only you decrypt |
-| Status | Working, interactive | Circuit verified on the Toy profile; production (Full) profile and a browser↔server deployment are future work (see §4 and the roadmap) |
-| Purpose | Show the experience and the scoring | Show — and provide — the privacy guarantee |
+Everything runs on your **local machine**; your data never leaves your computer.
+The **evaluator process (`compute_wellness`) receives only ciphertext** — the
+secret key and the plaintext inputs are physically withheld from it. The local
+bridge does handle your submitted inputs in cleartext in order to encrypt them
+(all on-device); a fully in-browser (WASM) encryption client is future work. See
+[`serve/README.md`](serve/README.md) for the full run/setup flow and privacy notes.
 
-In short: **the demo shows what VitalVault feels like and what it computes; the
-FHE pipeline is how it would compute that privately in production.** Wiring the
-verified pipeline output into this UI, and eventually running the encryption
-client-side in the browser, are the next steps on the roadmap — not yet done.
-
-> **Reminder — illustrative / demo-only.** Like everything in VitalVault, the
-> browser demo uses illustrative reference ranges and scoring constants that are
-> **not clinically validated**. It is not a medical device, does not provide a
-> diagnosis, and must never be used as medical advice. Always consult a qualified
-> provider.
+> **Illustrative / demo-only.** VitalVault uses illustrative reference ranges and
+> scoring constants that are **not clinically validated**. It is not a medical
+> device, does not provide a diagnosis, and must never be used as medical advice.
+> Always consult a qualified provider.
 
 ---
 
 ## 1. What VitalVault produces
 
-From a fixed set of 17 markers across four panels (Core vitals, Metabolic,
-Lipid, Thyroid), VitalVault returns:
+From a fixed set of 25 markers across eight panels (Core vitals, Metabolic,
+Lipid, Inflammation, Liver, Kidney, Hormone, Thyroid), VitalVault returns:
 
 - **System scores** (0–100) for each panel — how well that system's markers sit
   within healthy reference ranges.
@@ -176,7 +166,7 @@ performs the math without ever holding a key that could decrypt anything.
   cannot decrypt. (In this single-machine demo that separation is architectural,
   not sandbox-enforced — see "Key handling" below.)
 - **Even the shape of your data.** Every user submits the identical fixed
-  17-marker vector — present and absent markers look the same on the wire
+  25-marker vector — present and absent markers look the same on the wire
   (absent ones are encrypted zeros with zero mask weight). So the server cannot
   infer *which labs you provided* from ciphertext count, size, or structure.
 - **The intermediate computation.** Scores, the bio-age delta, contributions, and
@@ -360,7 +350,7 @@ done client-side (no in-circuit division), scoring weights are plaintext
 ```
 vitalvault/
   README.md            # this document (Stage 8)
-  shared.niob            # instance, directories, fixed 17-marker wire types
+  shared.niob            # instance, directories, fixed 25-marker wire types
   client.niob            # CKKS scheme block + key_generation / encrypt_profile /
                        #   decrypt_report stages (client holds the secret key)
   server.niob            # compute_wellness: the encrypted scoring circuit
@@ -372,39 +362,35 @@ vitalvault/
     stress.py          # stress-tail profiles (clamp / multi-flag / minimal-data)
     gen_profiles.py    # synthetic cohort generator + binary input + reference JSON
   ui/
-    index.html         # interactive browser demo — local JS scoring (NOT FHE),
-                       #   faithful port of the harness model (see §0)
-vendor/
-  fhe_dsl/             # vendored (source-only) Niobium DSL compiler (xcomp/) +
-                       #   docs + license/provenance. Apache-2.0.
-  runtime.lock         # pinned source commit the native FHE runtime is built from
-  fhe_runtime/         # git-ignored: native OpenFHE/FHETCH runtime + fhetch_driver,
-                       #   provisioned locally by serve/fetch_runtime.sh
+    index.html         # Full-FHE UI: results come only from the encrypted
+                       #   pipeline; the JS model is a hidden dev oracle (§0)
 serve/
   fhe_bridge.py        # local bridge: serves the UI + runs the FHE stage binaries
   run.sh               # one-command setup + run  (see serve/README.md)
-  fetch_runtime.sh     # builds vendor/fhe_runtime from the pinned source
+third_party/
+  niobium-client/      # git submodule (pinned): Niobium DSL compiler
+                       #   (dsl_fhe/xcomp) + OpenFHE/FHETCH toolchain + fhetch_driver
 ```
 
 ### Getting the code
 
-No git submodule is required. The DSL compiler is vendored (source-only) at
-`vendor/fhe_dsl/`; the native FHE runtime is built locally on first setup into
-the git-ignored `vendor/fhe_runtime/` from the source commit pinned in
-`vendor/runtime.lock`.
+The DSL compiler + FHE toolchain live in the **`third_party/niobium-client` git
+submodule** (pinned). Clone recursively so it comes with the repo:
 
 ```bash
-git clone https://github.com/leila-db/vitalvault-demo.git
+git clone --recurse-submodules https://github.com/leila-db/vitalvault-demo.git
 cd vitalvault-demo
-./serve/run.sh          # first run provisions the runtime from the pinned source
-                        # (needs internet, 10-30+ min), then builds + serves the app
+./serve/run.sh          # first run builds the submodule toolchain (needs internet,
+                        # ~15-30+ min), then builds + serves the app on :8010
 ```
 
+Already cloned without submodules? `git submodule update --init --recursive`.
+
 See [`serve/README.md`](serve/README.md) for the full run/setup flow, requirements,
-and the from-source runtime build (`./serve/fetch_runtime.sh --build-runtime`).
+platform notes, and the privacy boundary.
 
 Build/test is driven by `Makefile.vitalvault` at the repo root (it invokes the
-vendored compiler in `vendor/fhe_dsl/xcomp` against `vendor/fhe_runtime`):
+submodule's compiler at `third_party/niobium-client/dsl_fhe/xcomp`):
 
 - `make -f Makefile.vitalvault vitalvault-check` — instant DSL validation.
 - `make -f Makefile.vitalvault vitalvault-cohort` — print personas + synthetic cohort (no build).
