@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# VitalVault — one-command setup + run for the Full-only FHE app.
+# ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE.
+#
+# Builds anything missing (OpenFHE + Niobium client + fhetch_driver + the
+# VitalVault stage binaries), then starts the local FHE bridge + UI.
+# Re-running is cheap: it only builds what's absent.
+#
+# Usage:   ./serve/run.sh [PORT]      (default port 8000)
+# Requires: macOS on Apple silicon (arm64), Xcode CLT, cmake, python3.
+set -euo pipefail
+
+# Resolve repo root from this script's location — NO hardcoded user paths.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
+cd "$ROOT"
+PORT="${1:-8010}"
+NC="$ROOT/third_party/niobium-client"
+FD="$NC/vendor/niobium-fhetch/build/tests/fhetch_driver/fhetch_driver"
+VVB="$ROOT/vitalvault/nb_out/build"
+
+# --- platform guard ---------------------------------------------------------
+if [ "$(uname -s)" != "Darwin" ] || [ "$(uname -m)" != "arm64" ]; then
+  echo "ERROR: the prebuilt-style binaries are macOS arm64 (Apple silicon)."
+  echo "       This host is $(uname -s)/$(uname -m). See serve/README.md (Linux needs a full rebuild)."
+  exit 1
+fi
+for tool in cmake python3 git; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "ERROR: '$tool' not found. Install Xcode CLT + cmake."; exit 1; }
+done
+
+# --- submodule --------------------------------------------------------------
+if [ ! -f "$NC/Makefile" ]; then
+  echo "[1/4] fetching niobium-client submodule…"
+  git submodule update --init --recursive
+fi
+
+# --- OpenFHE + libnbfhetch + examples (the big one; ~10-30 min first time) --
+if ! ls "$NC"/vendor/lib/openfhe/lib/libOPENFHEpke*.dylib >/dev/null 2>&1 \
+   || ! ls "$NC"/build/vendor/niobium-fhetch/libnbfhetch*.dylib >/dev/null 2>&1; then
+  echo "[2/4] building OpenFHE + Niobium client (first time only — this can take 10-30 min)…"
+  make -C "$NC" build-release
+else
+  echo "[2/4] OpenFHE + Niobium client present — skipping."
+fi
+
+# --- fhetch_driver (cooperative-replay helper) ------------------------------
+if [ ! -x "$FD" ]; then
+  echo "[3/4] building fhetch_driver…"
+  make -f Makefile.vitalvault "$FD"
+else
+  echo "[3/4] fhetch_driver present — skipping."
+fi
+
+# --- VitalVault stage binaries (DSL -> C++ -> binaries) ---------------------
+if [ ! -x "$VVB/compute_wellness" ] || [ ! -x "$VVB/decrypt_report" ]; then
+  echo "[4/4] building VitalVault stage binaries…"
+  make -f Makefile.vitalvault vitalvault
+else
+  echo "[4/4] VitalVault binaries present — skipping."
+fi
+
+echo ""
+echo "Starting the Full FHE bridge on http://127.0.0.1:$PORT/"
+echo "  Real CKKS ring 65536 (128-classic). Each run takes SEVERAL MINUTES + ~6-7 GB RAM."
+echo "  Open the URL, enter your data, and the app runs keygen -> encrypt -> compute -> decrypt."
+echo ""
+exec python3 serve/fhe_bridge.py --port "$PORT"

@@ -132,18 +132,27 @@ fn decrypt_report(inst: Instance, chrono_age: f64 = 40.0) -> reads(EncryptedResu
     let UWIDE_LOW_FACTOR: f64 = 0.35
     let SHAPE: vec<u32> = [0,1,4,3,3,0,2, 0,1,0, 2,1,1,0, 1, 1,1, 1, 0,0,0,0, 0,0,0]
     let BETA: vec<f64> = [0.4,0.4,0.5,0.8,0.5,0.3,0.3, 0.7,1.0,0.3, 0.5,0.5,0.5,0.3, 0.6, 0.0,0.0, 0.0, 0.0,0.0,0.0,0.0, 0.3,0.2,0.2]
+    let SIGN_DIR: vec<f64> = [0.0,1.0,1.0,0.0,0.0,0.0,-1.0, 0.0,1.0,0.0, -1.0,1.0,1.0,0.0, 1.0, 1.0,1.0, 1.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0]
     let zmat = load_matrix<f64>(zvec_file(inst), inst.n_markers)
+    // Per-marker bio-age term (years): directional markers use beta*sign*z (the
+    // FHE delta already summed these); U-shaped markers use the penalty MAGNITUDE
+    // beta*sqrt(pen/scale), which is added here to the FHE directional delta.
+    let terms: vec<f64> = []
     for m in 0..N_MARKERS {
         let zc = zmat[0][m]
         let ax = abs(zc)
         let pos = (zc + ax) / 2.0
         let neg = (zc - ax) / 2.0
+        let term: f64 = BETA[m] * SIGN_DIR[m] * zc
         if SHAPE[m] == 0 {
-            delta = delta + BETA[m] * ((zc * zc) ^ 0.5)
+            term = BETA[m] * ((zc * zc) ^ 0.5)
+            delta = delta + term
         }
         if SHAPE[m] == 3 {
-            delta = delta + BETA[m] * ((pos * pos + UWIDE_LOW_FACTOR * (neg * neg)) ^ 0.5)
+            term = BETA[m] * ((pos * pos + UWIDE_LOW_FACTOR * (neg * neg)) ^ 0.5)
+            delta = delta + term
         }
+        terms.push(term)
     }
 
     // Client-side bio-age cap (no encrypted depth): clamp the TOTAL delta
@@ -152,11 +161,20 @@ fn decrypt_report(inst: Instance, chrono_age: f64 = 40.0) -> reads(EncryptedResu
     if delta > 10.0 { delta = 10.0 }
     let biological_age = chrono_age + delta
 
+    // Stable line-oriented output consumed by the bridge (all from the pipeline):
+    //   line 0        biological age
+    //   lines 1..8    raw panel scores (FHE), N_PANELS in fixed order
+    //   lines 9..33   per-marker bio-age terms (25), MARKER_ORDER
+    //   lines 34..58  per-marker |z| follow-up magnitudes (25), MARKER_ORDER
     print(str(biological_age))
-
-    // Raw system scores: one ciphertext per panel (N_PANELS = 8); print slot 0.
     for p in 0..N_PANELS {
         let s = decrypt(sk, res.system_scores[p])
         print(str(s[0]))
+    }
+    for m in 0..N_MARKERS {
+        print(str(terms[m]))
+    }
+    for m in 0..N_MARKERS {
+        print(str(abs(zmat[0][m])))
     }
 }

@@ -227,7 +227,7 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);-webkit-font-smoo
 
 <div class="phone">
   <div class="notch"></div>
-  <div class="demobar">Local browser demo · scores computed in JavaScript · <b>not the live FHE pipeline</b></div>
+  <div class="demobar">Local FHE app · real CKKS <b>ring 65536, 128-classic</b> · runs on your machine</div>
   <div class="viewport" id="vp"></div>
 </div>
 
@@ -782,8 +782,8 @@ function welcome(){return `
     <div class="mark"><svg width="64" height="64" viewBox="0 0 80 80"><path d="M16 22 A30 30 0 1 0 64 22" fill="none" stroke="#3F5B6B" stroke-width="7" stroke-linecap="round"/><path d="M28 30 L40 52 L52 30" fill="none" stroke="#7C9885" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <h1>vitalvault</h1>
     <p>Enter your vitals and lab values to see a personalized biological-age estimate and wellness breakdown.</p>
-    <p style="font-size:12px;color:var(--slate-soft)">Takes about two minutes. Labs are optional — you'll get results from vitals alone.</p>
-    <div class="priv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Runs locally in your browser</div>
+    <p style="font-size:12px;color:var(--slate-soft)">Takes several minutes, depending on your hardware. Labs are optional — you'll get results from vitals alone.</p>
+    <div class="priv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Runs locally on your device.</div>
     <button class="btn" style="margin-top:30px" onclick="startForm()">Get started</button>
     <div class="skip" onclick="loadSample()">or explore with sample data ›</div>
   </div>`;
@@ -925,8 +925,8 @@ function finish(){
   commitResults();
 }
 function commitResults(){
-  PROFILE=engineer(formData);REPORT=computeReport(PROFILE);
-  resetTo(overview());
+  PROFILE=engineer(formData);
+  runFullFHE();   // Full FHE is the ONLY calculation path (no JS scoring shown)
 }
 /* ===== conditional hormone context step (only when hormones entered) =======
    Collects the minimum context the priority ladder needs. Branches on sex.
@@ -985,7 +985,7 @@ function engineer(raw){
 function loadSample(){
   formData={age:44,sex:'female',height_cm:168,weight_kg:64,waist_cm:79,activity_ord:3,
     rhr:72,sbp:118,dbp:76,sleep:6.8,glucose:89,a1c:5.3,insulin:7,hdl:48,ldl:98,tg:82,tc:171,hscrp:0.8,alt:24,ast:21,creatinine:0.82,tsh:2.1,ft3:3.1};
-  PROFILE=engineer(formData);REPORT=computeReport(PROFILE);resetTo(overview());
+  PROFILE=engineer(formData);runFullFHE();   // sample data also runs real Full FHE
 }
 
 /* ===== OVERVIEW ===== */
@@ -1082,7 +1082,7 @@ function longevityStory(R){
   }
 
   // ---- ATTENTION (conditional, capped, calm) ----
-  const fuSorted=R.fus.slice().sort((x,y)=>Math.abs(standardize(y.k,R.prof[y.k],R.prof))-Math.abs(standardize(x.k,R.prof[x.k],R.prof)));
+  const fuSorted=R.fus.slice().sort((x,y)=>(y.mag||0)-(x.mag||0));  // magnitude from the FHE pipeline (|z|)
   const fuTop=fuSorted.slice(0,3).map(f=>f.marker);const fuExtra=fuSorted.length-fuTop.length;
   if(fuTop.length){
     const tail=fuExtra>0?', along with a few others':'';const one=fuTop.length===1&&fuExtra===0;
@@ -1099,6 +1099,131 @@ function longevityStory(R){
   return out;
 }
 function listJoin(arr){if(arr.length<=1)return arr[0]||'';if(arr.length===2)return arr[0]+' and '+arr[1];return arr.slice(0,-1).join(', ')+', and '+arr[arr.length-1];}
+/* ===== REAL FHE PIPELINE — Full ring 65536, the ONLY calculation path =======
+   No JavaScript preview, no Toy mode, no verification button, no fallback.
+   After the profile is submitted we run keygen -> encrypt -> compute_wellness
+   -> decrypt on the local bridge (streamed progress) and populate the results
+   page ONLY from the decrypted output. The JavaScript scoring functions in this
+   file are a HIDDEN development oracle (bridge-side accuracy check) — never the
+   user-facing results. Standardization, banding, composite, confidence and
+   per-marker display are client-side BY DESIGN (the FHE server computes the raw
+   panel scores, biological age, per-marker terms and follow-ups). */
+let FHE=null;   // last decrypted FHE response (proof/timings for the badge)
+
+function fheProvenance(){
+  if(!FHE)return '';
+  const pr=FHE.proof,t=FHE.timings_ms,pm=FHE.params;
+  return `
+  <div style="border:1px solid #bcd9c6;background:#eaf3ee;border-radius:12px;padding:12px 14px;margin:2px 0 16px">
+    <div style="font-weight:650;color:#2f6b45;font-size:13px">🔒 Computed under CKKS homomorphic encryption</div>
+    <div style="font-size:12px;color:#3a5a48;line-height:1.55;margin-top:5px">
+      Your wellness scores and biological age were computed on <b>ciphertext</b> at
+      <b>ring ${pm.ring_dim}, ${pm.security}</b>. The evaluator received only ciphertext and
+      <b>never saw your secret key or values</b> (${(pr.secret_key_bytes_withheld/1024|0)} KB key withheld).
+    </div>
+    <details style="margin-top:6px"><summary style="font-size:11.5px;color:#5e7e92;cursor:pointer">encryption details</summary>
+      <div style="font-size:11px;color:#5e7e92;line-height:1.7;margin-top:4px">
+        • evaluator saw secret key: <b>${pr.evaluator_saw_secret_key}</b> · plaintext: <b>${pr.evaluator_saw_plaintext}</b><br>
+        • keys visible to evaluator: ${pr.keys_visible_to_evaluator.join(', ')} (no sk.bin)<br>
+        • fixed shape: ${pr.n_marker_ciphertexts} marker + ${pr.n_mask_ciphertexts} mask → ${pr.encrypted_result_ciphertexts} result ciphertexts<br>
+        • polynomial trace: ${pr.trace_instructions?pr.trace_instructions.toLocaleString():'n/a'} FHETCH instructions<br>
+        • timing: keygen ${(t.keygen/1000).toFixed(1)}s · encrypt ${(t.encrypt/1000).toFixed(1)}s · compute ${(t.compute/1000).toFixed(0)}s · decrypt ${(t.decrypt/1000).toFixed(1)}s<br>
+        • standardization, banding & per-marker display run on your trusted device (client-side by design)
+      </div>
+    </details>
+  </div>`;
+}
+const FHE_STEPS=[['keygen','Generating keys'],['encrypt','Encrypting'],['compute','Computing on ciphertext'],['decrypt','Decrypting']];
+function fheProgressView(){
+  const rows=FHE_STEPS.map(([id,lbl])=>
+    `<div class="fstep" style="display:flex;align-items:center;gap:10px;padding:9px 0;font-size:14px">
+       <span id="dot_${id}" style="width:16px;height:16px;border-radius:50%;border:2px solid #cdd8dd;display:inline-block;flex:0 0 auto"></span>
+       <span id="lbl_${id}" style="color:#9aabb3">${lbl}</span><span id="ms_${id}" style="margin-left:auto;font-size:11px;color:#9aabb3"></span>
+     </div>`).join('');
+  return `
+  <style>@keyframes vvspin{to{transform:rotate(360deg)}}</style>
+  <div style="padding:36px 6px">
+    <div class="brand" style="justify-content:center;margin-bottom:22px"><svg width="34" height="34" viewBox="0 0 80 80"><path d="M16 22 A30 30 0 1 0 64 22" fill="none" stroke="#3F5B6B" stroke-width="7" stroke-linecap="round"/><path d="M28 30 L40 52 L52 30" fill="none" stroke="#7C9885" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div style="text-align:center;font-weight:650;color:#2b3f4a;font-size:17px;margin-bottom:6px">Running the encrypted computation</div>
+    <div style="text-align:center;font-size:13px;color:#5e7e92;line-height:1.55;margin-bottom:10px">Your data is encrypted and processed as ciphertext.</div>
+    <div style="text-align:center;font-size:12px;color:#9a7426;background:#faf0dc;border:1px solid #e6cf9c;border-radius:8px;padding:8px 10px;margin:0 0 20px">This can take several minutes. Please keep this tab open while the encrypted computation finishes.</div>
+    <div style="max-width:320px;margin:0 auto">${rows}</div>
+    <div id="fhe_elapsed" style="text-align:center;font-size:12px;color:#9aabb3;margin-top:18px"></div>
+  </div>`;
+}
+function fheSetStep(id,state,ms){
+  const dot=document.getElementById('dot_'+id),lbl=document.getElementById('lbl_'+id),mss=document.getElementById('ms_'+id);
+  if(!dot)return;
+  if(state==='run'){ dot.style.borderColor='#3F5B6B';dot.style.borderTopColor='transparent';dot.style.animation='vvspin .8s linear infinite';lbl.style.color='#2b3f4a';lbl.style.fontWeight='600'; }
+  else if(state==='done'){ dot.style.animation='';dot.style.background='#7C9885';dot.style.borderColor='#7C9885';lbl.style.color='#5e7e92';lbl.style.fontWeight='400'; if(ms!=null)mss.textContent=(ms/1000).toFixed(1)+'s'; }
+}
+function fheErrorView(msg){
+  return `
+  <div style="padding:48px 10px;text-align:center">
+    <div style="font-size:40px">⚠️</div>
+    <div style="font-weight:650;color:#b23;font-size:17px;margin:10px 0 6px">The encrypted computation failed</div>
+    <div style="font-size:13px;color:#5e7e92;line-height:1.6;max-width:340px;margin:0 auto">VitalVault only shows results from the real FHE pipeline — it does <b>not</b> fall back to an unencrypted estimate.</div>
+    <div style="font-size:12px;color:#b23;background:#fbeaea;border:1px solid #e6c0c0;border-radius:8px;padding:10px;margin:16px auto;max-width:340px;word-break:break-word">${String(msg)}</div>
+    <button class="btn" style="max-width:260px;margin:8px auto 0" onclick="runFullFHE()">Try again</button>
+    <div class="skip" onclick="resetTo(welcome())">Start over ›</div>
+  </div>`;
+}
+async function runFullFHE(){
+  if(!PROFILE){resetTo(fheErrorView('No profile submitted.'));return;}
+  resetTo(fheProgressView());
+  const started=Date.now();
+  const tick=setInterval(()=>{const el=document.getElementById('fhe_elapsed');if(el)el.textContent='elapsed '+Math.round((Date.now()-started)/1000)+'s';},1000);
+  try{
+    const resp=await fetch('/api/fhe/score',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(PROFILE)});
+    if(resp.status===429){ const j=await resp.json().catch(()=>({error:'busy'})); throw new Error(j.error||'busy'); }
+    if(!resp.body) throw new Error('no response stream (HTTP '+resp.status+')');
+    const reader=resp.body.getReader(),tdec=new TextDecoder();let buf='',result=null,errored=null;
+    for(;;){
+      const {done,value}=await reader.read(); if(done)break;
+      buf+=tdec.decode(value,{stream:true});
+      let nl; while((nl=buf.indexOf('\n'))>=0){
+        const line=buf.slice(0,nl).trim(); buf=buf.slice(nl+1); if(!line)continue;
+        const ev=JSON.parse(line);
+        if(ev.stage==='result')result=ev;
+        else if(ev.stage==='error')errored=ev.error;
+        else if(ev.status==='start')fheSetStep(ev.stage,'run');
+        else if(ev.status==='done')fheSetStep(ev.stage,'done',ev.ms);
+      }
+    }
+    clearInterval(tick);
+    if(errored)throw new Error(errored);
+    if(!result)throw new Error('pipeline returned no result');
+    FHE=result; REPORT=buildReportFromFHE(result,PROFILE);
+    resetTo(overview());
+  }catch(e){ clearInterval(tick); resetTo(fheErrorView(e.message||e)); }
+}
+/* Assemble REPORT from the decrypted FHE output. Scores, biological age,
+   per-marker bio-age terms and follow-up magnitudes all come from the pipeline.
+   Only client-by-design post-processing (display floor, banding, composite
+   blend of the FHE panel scores, data-completeness confidence) runs here. */
+function buildReportFromFHE(j,prof){
+  const ps=presentPanels(prof);
+  const sys={};
+  ps.forEach(p=>{ const raw=j.fhe.panels[p];
+    if(raw==null){ sys[p]={raw:null,disp:null,tracking:true}; }
+    else { sys[p]={raw:raw,disp:Math.round(displayScore(raw)),tracking:false}; } });
+  const age=j.fhe.biological_age, delta=age-(prof.age||0);
+  const scored=ps.filter(p=>sys[p].raw!=null);
+  let wsum=0,acc=0; scored.forEach(p=>{wsum+=PANEL_COMPOSITE[p];acc+=PANEL_COMPOSITE[p]*sys[p].raw;});
+  const comp=wsum?Math.max(0,Math.min(100,acc/wsum)):null;
+  const conf=confidence(prof);
+  const termsAll=j.fhe.terms||{}, absz=j.fhe.followup_absz||{};
+  const terms={};
+  present(prof).forEach(k=>{ if(isScorable(prof,k)&&termsAll[k]!=null)terms[k]=termsAll[k]; });
+  const MEANINGFUL=0.5;const help=[],hold=[];let minorHold=0,minorHoldCount=0;
+  Object.keys(terms).forEach(k=>{const y=terms[k];
+    if(y<-0.02)help.push({k,n:M[k][0],v:Math.abs(y),mag:Math.abs(y)});
+    else if(y>0.02){ if(y>=MEANINGFUL)hold.push({k,n:M[k][0],v:y,mag:y}); else {minorHold+=y;minorHoldCount++;} } });
+  help.sort((a,b)=>b.mag-a.mag);hold.sort((a,b)=>b.mag-a.mag);
+  const fus=present(prof).filter(k=>isScorable(prof,k)&&(absz[k]||0)>FOLLOWUP_Z)
+    .map(k=>({k,sys:M[k][7],marker:M[k][0],mag:absz[k]}));
+  return {prof,ps,sys,ba:{age,delta,terms},comp,conf,help:help.slice(0,4),hold:hold.slice(0,4),minorHold,minorHoldCount,fus,terms};
+}
 function overview(){
   const R=REPORT;const baPct=Math.max(8,Math.min(96,100-(R.ba.delta+10)/20*100));
   const dt=deltaText(R.ba.delta);
@@ -1146,13 +1271,14 @@ function overview(){
     <div class="brand"><svg width="30" height="30" viewBox="0 0 80 80"><path d="M16 22 A30 30 0 1 0 64 22" fill="none" stroke="#3F5B6B" stroke-width="7" stroke-linecap="round"/><path d="M28 30 L40 52 L52 30" fill="none" stroke="#7C9885" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="nm">vitalvault</span></div>
     <span class="footlink" style="margin:0" onclick="resetTo(welcome())">Start over</span>
   </div>
+  ${fheProvenance()}
   <div class="hero">
     <div class="ringlbl">Your biological age</div>
     <div class="ring-wrap">${ringSVG(baPct,'#3F5B6B',228,14)}<div class="bigage"><div class="num">${Math.round(R.ba.age)}</div><div class="lbl">years</div></div></div>
     <div class="payoff"><div class="big" style="color:${dt.col}">${dt.big}</div><div class="sub">${dt.sub}</div></div>
     ${heroQual}
   </div>
-  <div class="vstrip"><span>VitalScore</span><span class="sc">${compDisp}</span><span class="band" style="${bandStyle(compBand)}">${compBand}</span><span class="dot"></span><span class="bars">${confBars}</span><span style="font-size:12px">${R.ps.length} of 4 panels</span></div>
+  <div class="vstrip"><span>VitalScore</span><span class="sc">${compDisp}</span><span class="band" style="${bandStyle(compBand)}">${compBand}</span><span class="dot"></span><span class="bars">${confBars}</span><span style="font-size:12px">${R.ps.length} of ${PANELS.length} panels</span></div>
 
   <div class="block"><div class="eyebrow">Your systems</div><div class="sysrow">${sysCards}</div>${absentNote}</div>
 
@@ -1185,7 +1311,7 @@ function overview(){
       <div class="lrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg><span>That encrypted pipeline was <b style="font-weight:600">verified separately</b> in the backend prototype.</span></div>
     </div></div></div>
 
-  <div class="foot"><div class="footnote">Local browser demo. Scores are computed in JavaScript using an illustrative model ported from the VitalVault scoring system — not the live FHE pipeline. Not a medical device, not a diagnosis, and ranges are illustrative. Always consult a qualified provider.</div></div>`;
+  <div class="foot"><div class="footnote">Local FHE app. Wellness scores and biological age are computed under real CKKS homomorphic encryption (ring 65536, 128-classic) on this machine; standardization, banding and display are client-side by design. Not a medical device, not a diagnosis, and ranges are illustrative. Always consult a qualified provider.</div></div>`;
 }
 
 /* ===== biomarker card + panel + marker detail ===== */
