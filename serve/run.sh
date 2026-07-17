@@ -2,12 +2,12 @@
 # VitalVault — one-command setup + run for the Full-only FHE app.
 # ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE.
 #
-# Builds anything missing (OpenFHE + Niobium client + fhetch_driver + the
-# VitalVault stage binaries), then starts the local FHE bridge + UI.
-# Re-running is cheap: it only builds what's absent.
+# Provisions the native FHE runtime (into git-ignored vendor/fhe_runtime/) if
+# missing, builds the VitalVault stage binaries if missing, then starts the
+# local FHE bridge + UI. Re-running is cheap: it only does what's absent.
 #
-# Usage:   ./serve/run.sh [PORT]      (default port 8000)
-# Requires: macOS on Apple silicon (arm64), Xcode CLT, cmake, python3.
+# Usage:   ./serve/run.sh [PORT]      (default port 8010)
+# Requires: macOS on Apple silicon (arm64), Xcode CLT, cmake, python3, git.
 set -euo pipefail
 
 # Resolve repo root from this script's location — NO hardcoded user paths.
@@ -15,54 +15,42 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 cd "$ROOT"
 PORT="${1:-8010}"
-NC="$ROOT/third_party/niobium-client"
-FD="$NC/vendor/niobium-fhetch/build/tests/fhetch_driver/fhetch_driver"
+RUNTIME="$ROOT/vendor/fhe_runtime"
+FD="$RUNTIME/vendor/niobium-fhetch/build/tests/fhetch_driver/fhetch_driver"
 VVB="$ROOT/vitalvault/nb_out/build"
+PIN="$(grep -E '^niobium_client_commit' vendor/runtime.lock | sed 's/^[^=]*=[[:space:]]*//; s/[[:space:]]*$//')"
 
 # --- platform guard ---------------------------------------------------------
 if [ "$(uname -s)" != "Darwin" ] || [ "$(uname -m)" != "arm64" ]; then
-  echo "ERROR: the prebuilt-style binaries are macOS arm64 (Apple silicon)."
-  echo "       This host is $(uname -s)/$(uname -m). See serve/README.md (Linux needs a full rebuild)."
+  echo "ERROR: VitalVault's FHE runtime targets macOS arm64 (Apple silicon)."
+  echo "       This host is $(uname -s)/$(uname -m). See serve/README.md."
   exit 1
 fi
 for tool in cmake python3 git; do
   command -v "$tool" >/dev/null 2>&1 || { echo "ERROR: '$tool' not found. Install Xcode CLT + cmake."; exit 1; }
 done
 
-# --- submodule --------------------------------------------------------------
-if [ ! -f "$NC/Makefile" ]; then
-  echo "[1/4] fetching niobium-client submodule…"
-  git submodule update --init --recursive
-fi
-
-# --- OpenFHE + libnbfhetch + examples (the big one; ~10-30 min first time) --
-if ! ls "$NC"/vendor/lib/openfhe/lib/libOPENFHEpke*.dylib >/dev/null 2>&1 \
-   || ! ls "$NC"/build/vendor/niobium-fhetch/libnbfhetch*.dylib >/dev/null 2>&1; then
-  echo "[2/4] building OpenFHE + Niobium client (first time only — this can take 10-30 min)…"
-  make -C "$NC" build-release
+# --- [1/3] native FHE runtime (headers + libs + fhetch_driver) --------------
+if [ ! -x "$FD" ] || [ "$(cat "$RUNTIME/VERSION" 2>/dev/null || echo none)" != "$PIN" ]; then
+  echo "[1/3] native FHE runtime missing → provisioning from source at pin $PIN"
+  echo "      (this shallow-clones the pinned source and builds OpenFHE + FHETCH;"
+  echo "       needs internet and can take 10-30+ min the first time)…"
+  ./serve/fetch_runtime.sh --build-runtime
 else
-  echo "[2/4] OpenFHE + Niobium client present — skipping."
+  echo "[1/3] native FHE runtime present (pin $PIN) — skipping."
 fi
 
-# --- fhetch_driver (cooperative-replay helper) ------------------------------
-if [ ! -x "$FD" ]; then
-  echo "[3/4] building fhetch_driver…"
-  make -f Makefile.vitalvault "$FD"
-else
-  echo "[3/4] fhetch_driver present — skipping."
-fi
-
-# --- VitalVault stage binaries (DSL -> C++ -> binaries) ---------------------
+# --- [2/3] VitalVault stage binaries (DSL -> C++ -> binaries) ----------------
 if [ ! -x "$VVB/compute_wellness" ] || [ ! -x "$VVB/decrypt_report" ]; then
-  echo "[4/4] building VitalVault stage binaries…"
+  echo "[2/3] building VitalVault stage binaries…"
   make -f Makefile.vitalvault vitalvault
 else
-  echo "[4/4] VitalVault binaries present — skipping."
+  echo "[2/3] VitalVault binaries present — skipping."
 fi
 
-echo ""
-echo "Starting the Full FHE bridge on http://127.0.0.1:$PORT/"
-echo "  Real CKKS ring 65536 (128-classic). Each run takes SEVERAL MINUTES + ~6-7 GB RAM."
-echo "  Open the URL, enter your data, and the app runs keygen -> encrypt -> compute -> decrypt."
+# --- [3/3] serve ------------------------------------------------------------
+echo "[3/3] starting the Full FHE bridge on http://127.0.0.1:$PORT/"
+echo "      Real CKKS ring 65536 (128-classic). Each run takes SEVERAL MINUTES + several GB RAM."
+echo "      Open the URL in a browser (do not open ui/index.html directly)."
 echo ""
 exec python3 serve/fhe_bridge.py --port "$PORT"

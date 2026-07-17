@@ -1,0 +1,9 @@
+# Provisioned native FHE runtime (built from source or downloaded; never committed).
+vendor/fhe_runtime/
+
+# Transient source clone + build tree for the from-source runtime build.
+.cache/
+
+# Python bytecode
+__pycache__/
+*.pyc
