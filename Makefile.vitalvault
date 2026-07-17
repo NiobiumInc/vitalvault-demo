@@ -16,10 +16,11 @@
 # succeed. (serve/run.sh provisions the runtime automatically.)
 # ===========================================================================
 
-# Standalone-repo layout: this Makefile lives at the repo root, the Niobium
-# client is vendored as a git submodule under third_party/, and the VitalVault
-# example is a top-level directory. Paths are absolute so recipes can `cd` into
-# the compiler directory without breaking relative references.
+# Standalone-repo layout: this Makefile lives at the repo root, the DSL compiler
+# is vendored (source) under vendor/fhe_dsl, the native FHE runtime is provisioned
+# git-ignored under vendor/fhe_runtime, and the VitalVault example is a top-level
+# directory. Paths are absolute so recipes can `cd` into the compiler directory
+# without breaking relative references.
 REPO_ROOT           := $(CURDIR)
 # Native FHE runtime (headers + libs + fhetch_driver), provisioned git-ignored by
 # serve/fetch_runtime.sh. Mirrors the subpath layout the generated CMake expects.
