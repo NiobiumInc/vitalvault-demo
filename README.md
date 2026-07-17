@@ -39,16 +39,32 @@ Tools, `cmake`, `python3` (3.10+), `git`. The DSL compiler + FHE toolchain
 
 ### Clone, build, run
 
+The DSL compiler + FHE toolchain live in the pinned `third_party/niobium-client`
+submodule, so how you get the code depends on your situation:
+
+**Starting from scratch (new clone)** — pull the submodule in the same step:
+
 ```bash
 git clone --recurse-submodules <repo-url>
 cd <repo-folder>
+```
+
+**Already cloned the repo** (without `--recurse-submodules`, so
+`third_party/niobium-client` is empty) — initialize the submodule in place:
+
+```bash
+git submodule update --init --recursive
+```
+
+Either way, then build and run:
+
+```bash
 ./serve/run.sh          # first run builds the submodule toolchain (needs internet,
                         # ~15-30+ min), then builds the stage binaries and serves
 ```
 
 Open **http://127.0.0.1:8010/** in a browser (start the bridge from a Terminal —
 do **not** open `ui/index.html` directly; the page needs the local bridge).
-Already cloned without submodules? `git submodule update --init --recursive`.
 
 ### Parameters, flow, and timing
 
@@ -375,16 +391,30 @@ third_party/
 ### Getting the code
 
 The DSL compiler + FHE toolchain live in the **`third_party/niobium-client` git
-submodule** (pinned). Clone recursively so it comes with the repo:
+submodule** (pinned), so make sure it is present before building. There are two
+cases:
+
+**New clone** — fetch the submodule alongside the repo in one step:
 
 ```bash
 git clone --recurse-submodules https://github.com/leila-db/vitalvault-demo.git
 cd vitalvault-demo
+```
+
+**Already cloned** without the submodule (its `third_party/niobium-client`
+directory is empty because you cloned without `--recurse-submodules`) —
+initialize it in place:
+
+```bash
+git submodule update --init --recursive
+```
+
+Then build and serve:
+
+```bash
 ./serve/run.sh          # first run builds the submodule toolchain (needs internet,
                         # ~15-30+ min), then builds + serves the app on :8010
 ```
-
-Already cloned without submodules? `git submodule update --init --recursive`.
 
 See [`serve/README.md`](serve/README.md) for the full run/setup flow, requirements,
 platform notes, and the privacy boundary.
@@ -396,6 +426,24 @@ submodule's compiler at `third_party/niobium-client/dsl_fhe/xcomp`):
 - `make -f Makefile.vitalvault vitalvault-cohort` — print personas + synthetic cohort (no build).
 - `make -f Makefile.vitalvault test-vitalvault` — full record → replay → decrypt
   on the Toy profile, then compare decrypted output to the cleartext reference.
+
+### Editing the encrypted calculation
+
+Want to experiment with the encrypted calculation? The Niobium DSL that defines
+the encrypted scoring and computation logic lives in **`vitalvault/`** —
+`shared.niob`, `client.niob`, and `server.niob`. Open that directory in a coding
+agent such as Claude Code or ChatGPT to explore or change it. An agent can help
+you navigate and edit the DSL, but it does **not** remove the need to understand
+the model or to test your changes: after editing, rebuild and verify with the
+commands above (`make -f Makefile.vitalvault vitalvault` to compile + build, and
+`make -f Makefile.vitalvault test-vitalvault` for the full
+record → replay → decrypt check against the cleartext reference).
+
+> **Harmless build warnings.** While compiling the generated C++, the build may
+> print `-Wparentheses-equality` "double parenthesis" warnings such as
+> `if ((PANEL_OF[m] == p))`. These are emitted by the upstream Niobium DSL
+> compiler's code generation — **not** by the VitalVault `.niob` sources (which
+> are paren-free) — and do not affect the build or the computed results.
 
 ---
 
