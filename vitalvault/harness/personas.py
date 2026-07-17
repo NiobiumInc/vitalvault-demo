@@ -107,6 +107,66 @@ PERSONAS = {
         "rhr": 66, "sbp": 118, "dbp": 76, "sleep": 7.5,
         # no labs at all
     },
+
+    # ---- 25-marker / 8-panel coverage personas (all panels present) --------
+    "full_panel_male": {
+        "label": "Full 8-panel male (all markers scorable — primary E2E case)",
+        "age": 45, "sex": "male",
+        "height_cm": 178, "weight_kg": 80, "waist_cm": 90,
+        "activity_ordinal": 3,
+        "rhr": 58, "sbp": 118, "dbp": 76, "sleep": 7.5,
+        "glucose": 90, "a1c": 5.3, "insulin": 8,
+        "hdl": 52, "ldl": 95, "tg": 100, "tc": 175,
+        "hscrp": 0.8,
+        "alt": 25, "ast": 24,
+        "creatinine": 1.0,
+        "testosterone": 600, "shbg": 40, "estradiol": 25, "progesterone": 0.4,
+        "tsh": 1.9, "ft3": 3.2, "ft4": 1.2,
+    },
+    "full_panel_female_luteal": {
+        "label": "Full 8-panel female, luteal phase (context hormones SCORED)",
+        "age": 42, "sex": "female", "menopause": "pre", "cyclephase": "luteal",
+        "height_cm": 165, "weight_kg": 62, "waist_cm": 76,
+        "activity_ordinal": 3,
+        "rhr": 62, "sbp": 112, "dbp": 72, "sleep": 7.5,
+        "glucose": 85, "a1c": 5.1, "insulin": 7,
+        "hdl": 60, "ldl": 90, "tg": 85, "tc": 170,
+        "hscrp": 0.6,
+        "alt": 20, "ast": 20,
+        "creatinine": 0.8,
+        "testosterone": 40, "shbg": 70, "estradiol": 150, "progesterone": 12,
+        "tsh": 1.8, "ft3": 3.3, "ft4": 1.2,
+    },
+    "female_no_context": {
+        "label": "Female, no cycle phase (estradiol/progesterone INFORMATIONAL) + acute hs-CRP cap",
+        "age": 40, "sex": "female",
+        "height_cm": 165, "weight_kg": 64, "waist_cm": 78,
+        "activity_ordinal": 2,
+        "rhr": 66, "sbp": 118, "dbp": 76, "sleep": 7.0,
+        "glucose": 92, "a1c": 5.4, "insulin": 9,
+        "hdl": 58, "ldl": 100, "tg": 110, "tc": 180,
+        "hscrp": 12.0,  # > CRP_ACUTE_CAP (10) -> clamped before scoring
+        "alt": 24, "ast": 22,
+        "creatinine": 0.82,  # sex basis present (female) -> SCORED
+        "testosterone": 45, "shbg": 72,  # female basis -> SCORED
+        "estradiol": 120, "progesterone": 8,  # no cyclephase -> INFORMATIONAL
+        "tsh": 2.0, "ft3": 3.2, "ft4": 1.2,
+    },
+    "sex_unknown_full": {
+        "label": "Sex not provided (creatinine + ALL hormones INFORMATIONAL)",
+        "age": 50, "sex": "prefer_not",
+        "height_cm": 172, "weight_kg": 74, "waist_cm": 84,
+        "activity_ordinal": 2,
+        "rhr": 68, "sbp": 120, "dbp": 78, "sleep": 7.0,
+        "glucose": 95, "a1c": 5.5, "insulin": 10,
+        "hdl": 50, "ldl": 105, "tg": 120, "tc": 185,
+        "hscrp": 1.2,
+        "alt": 28, "ast": 26,  # liver NOT sex-specific -> SCORED
+        "creatinine": 0.9,  # sex-specific, no basis -> INFORMATIONAL
+        "testosterone": 500, "shbg": 38,  # no basis -> INFORMATIONAL
+        "estradiol": 30, "progesterone": 0.5,  # no basis -> INFORMATIONAL
+        "tsh": 2.1, "ft3": 3.1, "ft4": 1.1,
+    },
 }
 
 

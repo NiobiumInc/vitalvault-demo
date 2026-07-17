@@ -3,12 +3,14 @@
 // ILLUSTRATIVE / DEMO-ONLY. NOT A MEDICAL DEVICE. NOT FOR CLINICAL USE.
 //
 // Runs on the SERVER (The Fog). NO access to the secret key. Receives the
-// fixed 17-marker encrypted z-vector + mask; the scoring "model" (per-marker
+// fixed 25-marker encrypted z-vector + mask; the scoring "model" (per-marker
 // penalty shape, panel layout, bio-age betas) is the server's PLAINTEXT data,
 // folded into the circuit. Computes, WITHOUT decrypting:
 //   - per-marker penalty(z)            [shared-degree Chebyshev, ~4 levels]
 //   - weighted system scores           [cipher x plain mask, ~1 level]
-//   - biological-age delta             [weighted sum, ~1 level, PARALLEL]
+//   - biological-age delta (DIRECTIONAL, UNWEIGHTED) [~1 level, PARALLEL]
+//     (U-shaped bio-age terms are reconstructed CLIENT-side from the client's
+//      own z; see client.niob decrypt_report — Option B)
 //   - per-marker contributions         [byproduct, 0 extra levels]
 //   - follow-up soft indicators        [iterated squaring, ~2 + K levels]
 // Critical path = the follow-up branch (~15); others are shallower parallel
@@ -21,11 +23,15 @@ use shared::*
 
 // ============================================================================
 // Plaintext model layout (the server's "weights"). FIXED marker order matches
-// the harness MARKER_ORDER and the 17-wide vector:
+// the harness MARKER_ORDER and the 25-wide vector:
 //   0 bmi 1 whtr 2 rhr 3 sbp 4 dbp 5 sleep 6 activity        (core, panel 0)
 //   7 glucose 8 a1c 9 insulin                                 (metabolic, 1)
 //   10 hdl 11 ldl 12 tg 13 tc                                 (lipid, 2)
-//   14 tsh 15 ft3 16 ft4                                      (thyroid, 3)
+//   14 hscrp                                                  (inflammation, 3)
+//   15 alt 16 ast                                             (liver, 4)
+//   17 creatinine                                             (kidney, 5)
+//   18 testosterone 19 shbg 20 estradiol 21 progesterone      (hormone, 6)
+//   22 tsh 23 ft3 24 ft4                                      (thyroid, 7)
 // The per-marker model vectors (panel id, beta, directional sign, shape) are
 // declared as function-LOCAL typed vectors inside compute_wellness — see note
 // below the penalty constants.
@@ -112,15 +118,21 @@ fn compute_wellness(inst: Instance)
 {
     let params = load(CryptoParams, from: keydir(inst))
     let prof = load(EncryptedProfile, from: encdir(inst))
-    let z = prof.markers      // 17 ciphertexts, one per marker (z per slot)
-    let w = prof.mask         // 17 ciphertexts, renormalized panel weights
+    let z = prof.markers      // 25 ciphertexts, one per marker (z per slot)
+    let w = prof.mask         // 25 ciphertexts, renormalized panel weights
 
     // Per-marker model (function-local typed vectors; see note above).
-    // order: bmi whtr rhr sbp dbp sleep activity | glucose a1c insulin | hdl ldl tg tc | tsh ft3 ft4
-    let SHAPE: vec<u32> = [0,1,4,3,3,0,2, 0,1,0, 2,1,1,0, 0,0,0]
-    let PANEL_OF: vec<u32> = [0,0,0,0,0,0,0, 1,1,1, 2,2,2,2, 3,3,3]
-    let BETA: vec<f64> = [0.4,0.4,0.5,0.8,0.5,0.3,0.3, 0.7,1.0,0.3, 0.5,0.5,0.5,0.3, 0.3,0.2,0.2]
-    let SIGN_DIR: vec<f64> = [0.0,1.0,1.0,0.0,0.0,0.0,-1.0, 0.0,1.0,0.0, -1.0,1.0,1.0,0.0, 0.0,0.0,0.0]
+    // order: bmi whtr rhr sbp dbp sleep activity | glucose a1c insulin |
+    //        hdl ldl tg tc | hscrp | alt ast | creatinine |
+    //        testosterone shbg estradiol progesterone | tsh ft3 ft4
+    // shape: 0=U_SHAPED 1=DIRECTIONAL_LOW 2=DIRECTIONAL_HIGH 3=U_WIDE_LOW 4=RHR_LOW_FLOOR
+    let SHAPE: vec<u32> = [0,1,4,3,3,0,2, 0,1,0, 2,1,1,0, 1, 1,1, 1, 0,0,0,0, 0,0,0]
+    let PANEL_OF: vec<u32> = [0,0,0,0,0,0,0, 1,1,1, 2,2,2,2, 3, 4,4, 5, 6,6,6,6, 7,7,7]
+    // beta = 0 for liver/kidney/hormone markers (bio-age neutral tier).
+    let BETA: vec<f64> = [0.4,0.4,0.5,0.8,0.5,0.3,0.3, 0.7,1.0,0.3, 0.5,0.5,0.5,0.3, 0.6, 0.0,0.0, 0.0, 0.0,0.0,0.0,0.0, 0.3,0.2,0.2]
+    // sign for DIRECTIONAL markers only (U-shaped -> 0; their bio-age is the
+    // penalty MAGNITUDE, reconstructed client-side, so it never enters here).
+    let SIGN_DIR: vec<f64> = [0.0,1.0,1.0,0.0,0.0,0.0,-1.0, 0.0,1.0,0.0, -1.0,1.0,1.0,0.0, 1.0, 1.0,1.0, 1.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0]
 
     // ---- Branch A: per-marker penalty via shared-degree Chebyshev ---------
     // Each marker uses its APPROVED penalty shape (U / directional / wide-low /
@@ -160,12 +172,16 @@ fn compute_wellness(inst: Instance)
     // fhe-NetworkMonitor pattern of returning per-element ciphertexts.)
 
     // ---- Branch B: biological-age delta (PARALLEL, ~1 level) --------------
-    // Directional markers contribute beta*sign*z (signed). U-shaped markers
-    // (sign==0) contribute via penalty magnitude, reconstructed client-side
-    // from the returned contributions vector to avoid an in-circuit sqrt.
+    // Directional markers contribute beta*sign*z (signed), UNWEIGHTED — this
+    // exactly mirrors harness/scoring.py bioage_terms (no within-panel mask on
+    // bio-age). U-shaped markers (sign==0) contribute via penalty MAGNITUDE
+    // (beta*sqrt(penalty/scale)); that half is reconstructed CLIENT-side from
+    // the client's own standardized z (client.niob decrypt_report, Option B),
+    // avoiding an in-circuit sqrt. Absent/informational markers arrive as z=0,
+    // so they add nothing here (matching Python, which skips non-scorable).
     let bio: enc<vec<f64>> = zero()
     for m in 0..N_MARKERS {
-        bio = bio + (z[m] * w[m]) * (BETA[m] * SIGN_DIR[m])
+        bio = bio + z[m] * (BETA[m] * SIGN_DIR[m])
     }
     let bioage_delta: enc<vec<f64>> = bio |> slot_sum(inst.n_slots)
 

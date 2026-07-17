@@ -33,6 +33,10 @@ LD_LIB_PATH := $(NIOBIUM_CLIENT_ROOT)/vendor/lib/openfhe/lib:$(NIOBIUM_CLIENT_RO
 NBCC_FHETCH_DRIVER ?= $(NIOBIUM_CLIENT_ROOT)/vendor/niobium-fhetch/build/tests/fhetch_driver/fhetch_driver
 export NBCC_FHETCH_DRIVER
 
+# OpenFHE install produced by `make -C third_party/niobium-client build-release`.
+# Reused (never rebuilt) when building fhetch_driver below.
+OPENFHE_INSTALL_DIR ?= $(NIOBIUM_CLIENT_ROOT)/vendor/lib/openfhe
+
 .PHONY: vitalvault test-vitalvault vitalvault-check vitalvault-cohort clean-vitalvault
 
 # --- DSL -> C++ -> binaries -------------------------------------------------
@@ -68,7 +72,19 @@ vitalvault-cohort:
 # four-stage encrypted pipeline (key_generation -> encrypt_profile ->
 # compute_wellness -> decrypt_report), then runs the cleartext reference twins
 # and confirms the decrypted scores match reference.json within tolerance.
-test-vitalvault: vitalvault
+# The cooperative-replay helper compute_wellness spawns. It is NOT produced by
+# `make -C third_party/niobium-client build-release` (that populates build/
+# only); it lives in the niobium-fhetch submodule's own build tree. Build it
+# via the submodule's official config+build targets, reusing the already-
+# installed OpenFHE (EXTERNAL_OPENFHE=1) so OpenFHE is not recompiled. As a
+# file target this runs only when the binary is absent.
+$(NBCC_FHETCH_DRIVER):
+	$(MAKE) -C $(NIOBIUM_CLIENT_ROOT)/vendor/niobium-fhetch \
+		EXTERNAL_OPENFHE=1 \
+		OPENFHE_INSTALL_DIR=$(OPENFHE_INSTALL_DIR) \
+		config-fhetch-release build-release
+
+test-vitalvault: vitalvault $(NBCC_FHETCH_DRIVER)
 	@echo ""
 	@echo "=== Testing VitalVault (end-to-end, toy profile) ==="
 	@echo "    ILLUSTRATIVE/DEMO-ONLY, non-diagnostic."

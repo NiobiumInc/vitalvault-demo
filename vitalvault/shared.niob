@@ -17,8 +17,10 @@
 //   - SERVER-SIDE (this encrypted circuit): penalty(z) via shared-degree
 //     Chebyshev, weighted system penalties -> scores, bio-age delta, per-term
 //     contributions, follow-up indicators via iterated squaring.
-//   - FIXED 17-marker vector: Core(7) + Metabolic(3) + Lipid(4) + Thyroid(3).
-//     Absent markers encrypt as z=0 with mask weight 0, so EVERY profile
+//   - FIXED 25-marker vector: Core(7) + Metabolic(3) + Lipid(4) +
+//     Inflammation(1) + Liver(2) + Kidney(1) + Hormone(4) + Thyroid(3).
+//     Absent OR present-but-unscored (informational) markers encrypt as z=0
+//     with mask weight 0, so EVERY profile
 //     produces the identical ciphertext shape/count -> the server cannot
 //     infer which labs were provided (privacy invariant).
 //   - Parameters: CKKS, ring_dim 65536 (hardware target), 128-classic,
@@ -29,11 +31,13 @@
 enum Profile { Toy, Full }
 
 // Fixed marker-vector width. FROZEN: changing this invalidates existing
-// keys/ciphertexts. Core 7 + Metabolic 3 + Lipid 4 + Thyroid 3 = 17.
-const N_MARKERS: u32 = 17
+// keys/ciphertexts. Core 7 + Metabolic 3 + Lipid 4 + Inflammation 1 +
+// Liver 2 + Kidney 1 + Hormone 4 + Thyroid 3 = 25.
+const N_MARKERS: u32 = 25
 
-// Number of distinct system panels (core, metabolic, lipid, thyroid).
-const N_PANELS: u32 = 4
+// Number of distinct system panels
+// (core, metabolic, lipid, inflammation, liver, kidney, hormone, thyroid).
+const N_PANELS: u32 = 8
 
 // Standardization clamp domain [-Z_CLAMP, Z_CLAMP] — also the Chebyshev
 // approximation domain on the server.
@@ -49,17 +53,17 @@ struct Instance {
     profile: Profile,
     ring_dim: u32,
     n_slots: u32,       // users packed per ciphertext batch (ring_dim / 2)
-    n_markers: u32,     // = N_MARKERS (17), one ciphertext per marker column
+    n_markers: u32,     // = N_MARKERS (25), one ciphertext per marker column
     depth: u32,         // declared multiplicative depth (20)
 }
 
 fn instance(profile: Profile) -> Instance {
     match profile {
         Toy  => Instance { profile, ring_dim: 2048,  n_slots: 512,
-                           n_markers: 17, depth: 20 },
+                           n_markers: 25, depth: 20 },
         // HARD deployment constraint: hardware targets ring dim 2^16.
         Full => Instance { profile, ring_dim: 65536, n_slots: 32768,
-                           n_markers: 17, depth: 20 },
+                           n_markers: 25, depth: 20 },
     }
 }
 

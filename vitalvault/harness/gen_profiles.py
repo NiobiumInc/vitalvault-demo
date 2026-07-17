@@ -60,11 +60,12 @@ N_SLOTS_TOY = 512           # dev profile: single replicated user, well under
                             # ringDim/2 (1024) so CKKS packing never overflows
 MARKER_ORDER = [m.key for m in C.MARKERS]   # FIXED slot order
 N_MARKERS = len(MARKER_ORDER)
-# V1 = Core(7) + Metabolic(3) + Lipid(4) + Thyroid(3) = 17 marker slots.
+# 25-marker model = Core(7) + Metabolic(3) + Lipid(4) + Inflammation(1) +
+# Liver(2) + Kidney(1) + Hormone(4) + Thyroid(3) = 25 marker slots.
 # This width is FROZEN once we generate keys: changing it invalidates existing
 # ciphertexts/keys. Assert it so an accidental table edit can't silently widen
 # the encrypted vector.
-assert N_MARKERS == 17, "V1 marker vector must be 17 wide, got %d" % N_MARKERS
+assert N_MARKERS == 25, "marker vector must be 25 wide, got %d" % N_MARKERS
 
 
 # ---------------------------------------------------------------------------
@@ -77,16 +78,22 @@ def build_vector_and_mask(profile):
     Present marker: z=standardized value, mask=its renormalized panel weight.
     Same length and order for everyone -> server cannot tell what's present.
     """
-    # renormalized within-panel weights over present markers
+    # renormalized within-panel weights over SCORABLE markers
     panel_w = {p: S.renormalized_weights(profile, p) for p in C.PANELS}
     zvec, wmask = [], []
     for key in MARKER_ORDER:
-        val = profile.get(key)
-        if val is None:
+        # Absent OR present-but-unscored (informational: a sex/context-specific
+        # marker without the basis to interpret it) both encrypt as z=0, mask=0
+        # -> identical ciphertext shape, and excluded from scoring / bio-age /
+        # follow-ups exactly as scoring.py does (is_scorable gates all of them).
+        if not S.is_scorable(profile, key):
             zvec.append(0.0)
             wmask.append(0.0)
         else:
-            zvec.append(S.standardize(key, val))
+            # standardize with the full profile so sex-specific (creatinine,
+            # testosterone, shbg) and context-specific (estradiol, progesterone)
+            # markers select the correct (mid, hw) CLIENT-side.
+            zvec.append(S.standardize(key, profile[key], profile))
             panel = C.MARKER_BY_KEY[key].panel
             wmask.append(panel_w[panel].get(key, 0.0))
     return zvec, wmask

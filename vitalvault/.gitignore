@@ -7,7 +7,8 @@
 
 # --- nbc code generation + C++ build tree ---------------------------------
 nb_out/
-nb_out*/            # catches "nb_out 2" and similar Finder/duplicate copies
+# catches "nb_out 2" and similar Finder/duplicate copies
+nb_out*/
 build/
 *.o
 *.obj
@@ -16,8 +17,10 @@ CMakeFiles/
 cmake_install.cmake
 
 # --- runtime I/O: keys, ciphertexts, generated inputs, references ----------
-io/                 # keys/, encrypted/, zvec.bin, wmask.bin, reference.json, cohort_*
-*.bin               # serialized ciphertexts, keys, and packed input matrices
+# keys/, encrypted/, zvec.bin, wmask.bin, reference.json, cohort_*
+io/
+# serialized ciphertexts, keys, and packed input matrices
+*.bin
 sk.bin
 cc.bin
 pk.bin
