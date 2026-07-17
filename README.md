@@ -46,8 +46,6 @@ python3 -m http.server 8000
 
 There's nothing to install. On the welcome screen you can either enter your own
 values or tap *"explore with sample data"* for an instant populated dashboard.
-Screenshots of the landing, input flow, lab entry, and results views are in
-**`screenshots/`**.
 
 ### What the demo actually computes — read this
 
@@ -376,7 +374,6 @@ vitalvault/
   ui/
     index.html         # interactive browser demo — local JS scoring (NOT FHE),
                        #   faithful port of the harness model (see §0)
-  screenshots/         # landing, input flow, lab entry, and results views
 vendor/
   fhe_dsl/             # vendored (source-only) Niobium DSL compiler (xcomp/) +
                        #   docs + license/provenance. Apache-2.0.
