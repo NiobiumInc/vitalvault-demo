@@ -84,9 +84,17 @@ echo "[runtime] initializing niobium-fhetch (+ nested OpenFHE) submodules…"
 git -C "$SRC" submodule update --init --recursive --depth 1 vendor/niobium-fhetch
 
 OFHE_INSTALL="$SRC/vendor/lib/openfhe"
-# Parallelism: default to all cores, but allow capping (OpenFHE TUs are memory
-# heavy — on <=8 GB machines cap with NIOBIUM_BUILD_JOBS=4 to avoid OOM).
-JOBS="${NIOBIUM_BUILD_JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)}"
+# Parallelism: OpenFHE translation units are memory-heavy (~1-2 GB each at peak),
+# so default to min(cores, RAM_GB/2) to avoid OOM/swap-thrash on smaller machines
+# (8 GB -> 4 jobs, 16 GB -> up to 8). Override with NIOBIUM_BUILD_JOBS=N.
+if [ -n "${NIOBIUM_BUILD_JOBS:-}" ]; then
+  JOBS="$NIOBIUM_BUILD_JOBS"
+else
+  CORES=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
+  RAMGB=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 8589934592) / 1073741824 ))
+  CAP=$(( RAMGB / 2 )); [ "$CAP" -lt 2 ] && CAP=2
+  JOBS=$(( CORES < CAP ? CORES : CAP ))
+fi
 echo "[runtime] configuring + building OpenFHE + libnbfhetch + auto-facade with -j$JOBS (this can take 10-30+ min)…"
 make -C "$SRC" config-release NUM_CPUS="$JOBS"
 make -C "$SRC" build-release  NUM_CPUS="$JOBS"
