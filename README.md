@@ -66,6 +66,11 @@ Either way, then build and run:
 Open **http://127.0.0.1:8010/** in a browser (start the bridge from a Terminal —
 do **not** open `ui/index.html` directly; the page needs the local bridge).
 
+**Optional — offload the encrypted step to Niobium Fog.** By default the
+encrypted computation runs on your CPU. You can instead run it on the Niobium
+Fog service (the secret key stays local) with `./serve/fog_run.sh` — see
+[*Running the encrypted step on Niobium Fog*](serve/README.md) in `serve/README.md`.
+
 ### Parameters, flow, and timing
 
 Real CKKS at **ring 65536, depth 20, 128-classic security**, over the fixed
@@ -417,7 +422,9 @@ Then build and serve:
 ```
 
 See [`serve/README.md`](serve/README.md) for the full run/setup flow, requirements,
-platform notes, and the privacy boundary.
+platform notes, and the privacy boundary. To build against your own
+niobium-client checkout instead of the pinned submodule, set
+`NIOBIUM_CLIENT_ROOT=/path/to/niobium-client` (see *Advanced* in `serve/README.md`).
 
 Build/test is driven by `Makefile.vitalvault` at the repo root (it invokes the
 submodule's compiler at `third_party/niobium-client/dsl_fhe/xcomp`):

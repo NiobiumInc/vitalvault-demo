@@ -15,7 +15,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 cd "$ROOT"
 PORT="${1:-8010}"
-NC="$ROOT/third_party/niobium-client"
+# Toolchain location. Defaults to the pinned submodule so a recursive clone is
+# turnkey; set NIOBIUM_CLIENT_ROOT to build against your own niobium-client
+# checkout instead (e.g. a newer version than the pinned one).
+NC="${NIOBIUM_CLIENT_ROOT:-$ROOT/third_party/niobium-client}"
 FD="$NC/vendor/niobium-fhetch/build/tests/fhetch_driver/fhetch_driver"
 VVB="$ROOT/vitalvault/nb_out/build"
 

@@ -43,7 +43,7 @@ OPENFHE_INSTALL_DIR ?= $(NIOBIUM_CLIENT_ROOT)/vendor/lib/openfhe
 vitalvault:
 	@echo "=== Compiling VitalVault (DSL -> C++) ==="
 	@mkdir -p $(VV_NB_OUT)
-	@cd $(XCOMP) && python3 nbc.py compile \
+	@cd $(XCOMP) && PYTHONPATH=.. python3 -m xcomp.nbc compile \
 		$(VV_DIR)/shared.niob \
 		$(VV_DIR)/client.niob \
 		$(VV_DIR)/server.niob \
@@ -59,7 +59,7 @@ vitalvault:
 
 # --- Semantic check only (no build; runs anywhere) --------------------------
 vitalvault-check:
-	@cd $(XCOMP) && python3 nbc.py check \
+	@cd $(XCOMP) && PYTHONPATH=.. python3 -m xcomp.nbc check \
 		$(VV_DIR)/shared.niob $(VV_DIR)/client.niob $(VV_DIR)/server.niob
 
 # --- Stage-3 ground truth (cleartext; runs anywhere) ------------------------

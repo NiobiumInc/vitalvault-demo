@@ -48,7 +48,9 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent          # no hardcoded user paths
 VV = REPO / "vitalvault"
-NC = REPO / "third_party" / "niobium-client"
+# Toolchain location. Defaults to the pinned submodule; override with
+# NIOBIUM_CLIENT_ROOT to run against your own niobium-client checkout.
+NC = Path(os.environ.get("NIOBIUM_CLIENT_ROOT") or (REPO / "third_party" / "niobium-client"))
 BUILD = VV / "nb_out" / "build"
 UI_HTML = REPO / "ui" / "index.html"
 

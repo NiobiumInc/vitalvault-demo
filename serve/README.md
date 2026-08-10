@@ -40,6 +40,13 @@ If you already cloned without `--recurse-submodules`:
 git submodule update --init --recursive
 ```
 
+> **Advanced — build against your own client.** By default the build uses the
+> pinned `third_party/niobium-client` submodule. To build and run against a
+> different niobium-client checkout instead (for example a newer version), set
+> `NIOBIUM_CLIENT_ROOT=/path/to/niobium-client` before `./serve/run.sh` (it is
+> also honored by the `make -f Makefile.vitalvault` targets). It defaults to the
+> submodule, so a normal recursive clone is unaffected.
+
 **Start the bridge from a Terminal and open the localhost URL. Do NOT open
 `ui/index.html` directly** — the page needs the local bridge (which runs the FHE
 binaries) at the same origin; opening the file alone just shows an error.
@@ -71,6 +78,34 @@ encrypted pipeline starts only on submit. It runs with a live progress view
 → Decrypting results**). **Each Full ring-65536 calculation takes several
 minutes** (roughly 3 min on 16 GB, longer on 8 GB); results appear **only** after
 the real FHE run succeeds.
+
+## Running the encrypted step on Niobium Fog (optional)
+
+By default the encrypted `compute_wellness` stage runs on this machine's CPU.
+You can instead **offload it to the Niobium Fog service** — the heavy
+ciphertext computation runs on Fog hardware, while key generation, encryption,
+and decryption stay local. The secret key never leaves your machine; only the
+ciphertext trace, the input ciphertexts, and the public evaluation keys are
+sent to the worker.
+
+```bash
+fog login                    # one-time: provision an API key into ~/.fog
+./serve/fog_run.sh           # Full profile, endurance_athlete persona
+./serve/fog_run.sh <persona> # any built-in persona
+```
+
+`fog_run.sh` runs the same four-stage pipeline as the local app, but dispatches
+the compute stage to Fog (`--target=FOG`): it records the trace locally
+(`--hollow`, so no heavy math runs here), `fog submit`s it to a worker, then
+decrypts locally and prints the biological age and panel scores. It requires the
+app to be built already (`./serve/run.sh` once) and a Fog account (`fog login`).
+
+- **Full profile only.** Fog runs at ring 65536; the Toy profile stays CPU-only
+  (`make -f Makefile.vitalvault test-vitalvault`).
+- The upload is a few GB (ring-65536 evaluation keys + ciphertexts), so the
+  first dispatch takes a couple of minutes over the network on top of the
+  worker's compute.
+- Honors `NIOBIUM_CLIENT_ROOT` like the rest of the build.
 
 ## How it works / privacy
 
