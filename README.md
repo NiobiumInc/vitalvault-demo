@@ -508,3 +508,7 @@ modeled but not sandbox-enforced, decryption must stay on the data owner's side
 for real-world plausibility. None of these are flaws in the homomorphic
 computation itself — they are deployment and framing limits of a demo, and they
 are documented here so the demo's claims match what the code actually does.
+
+## 10. Contributing
+
+This repository is Niobium's fork of [leila-db/vitalvault-demo](https://github.com/leila-db/vitalvault-demo). Please open issues and pull requests on the original repository. Issues are turned off here, and pull requests are limited to collaborators.
