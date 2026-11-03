@@ -1,0 +1,34 @@
+{
+  "curations": {
+    "automated-fuzzer": {
+      "license": "UNKNOWN",
+      "reviewed": null,
+      "reviewer": null,
+      "note": "No license found at github.com/qarmin/Automated-Fuzzer"
+    },
+    "goog-coredumper/google-perftools": {
+      "license": "UNKNOWN",
+      "reviewed": null,
+      "reviewer": null,
+      "note": "Not on GitHub or GitLab: https://sourceforge.net/projects/goog-coredumper/google-perftools"
+    },
+    "PaperFriend-desktop-app": {
+      "license": "UNKNOWN",
+      "reviewed": null,
+      "reviewer": null,
+      "note": "No license found at github.com/CSE201-project/PaperFriend-desktop-app"
+    },
+    "Snake": {
+      "license": "UNKNOWN",
+      "reviewed": null,
+      "reviewer": null,
+      "note": "No license found at github.com/ILTZ/Snake"
+    },
+    "startle": {
+      "license": "MIT",
+      "reviewed": "2026-11-03",
+      "reviewer": "auto-github-api",
+      "note": "License from github.com/raphael-group/startle"
+    }
+  }
+}
