@@ -2,9 +2,9 @@ THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
 ============================================================
 
 Project: vitalvault-demo
-Generated: 2026-08-27
+Generated: 2026-11-03
 Tool: SCANOSS (snippet detection with License dataset)
-Components: 0
+Components: 76
 
 This file lists all third-party software components detected
 in this repository, along with their licenses and copyright
@@ -12,14 +12,1658 @@ notices as required by those licenses.
 
 ------------------------------------------------------------
 
+WARNING: The following component(s) have no license information.
+These require manual review to determine licensing terms.
+
+  - automated-fuzzer (https://github.com/qarmin/Automated-Fuzzer)
+  - goog-coredumper/google-perftools (https://sourceforge.net/projects/goog-coredumper/google-perftools)
+  - PaperFriend-desktop-app (https://github.com/CSE201-project/PaperFriend-desktop-app)
+  - Snake (https://github.com/ILTZ/Snake)
+  - startle (https://github.com/raphael-group/startle)
+
+------------------------------------------------------------
+
 LICENSE SUMMARY
 
-  (none)
+  Apache-2.0: 15 component(s)
+  Apache-2.0 WITH LLVM-exception: 2 component(s)
+  Apache-2.0 WITH LLVM-exception AND NCSA: 1 component(s)
+  Apache-2.0 WITH LLVM-exception AND NCSA AND NCSA OR MIT AND NCSA AND MIT: 1 component(s)
+  BSD-2-Clause: 7 component(s)
+  BSD-3-Clause: 30 component(s)
+  BSD-3-Clause-LBNL: 1 component(s)
+  BSL-1.0: 1 component(s)
+  CC-BY-4.0: 1 component(s)
+  CC0-1.0: 1 component(s)
+  EPL-2.0 [COPYLEFT]: 1 component(s)
+  GPL-2.0-only [COPYLEFT]: 4 component(s)
+  GPL-2.0-or-later [COPYLEFT]: 2 component(s)
+  GPL-3.0-only [COPYLEFT]: 4 component(s)
+  ISC: 1 component(s)
+  LGPL-2.1-only [COPYLEFT]: 2 component(s)
+  LGPL-3.0-only [COPYLEFT]: 1 component(s)
+  MIT: 18 component(s)
+  MPL-2.0 [COPYLEFT]: 1 component(s)
+  NCSA: 4 component(s)
+  OpenSSL: 1 component(s)
+  Zlib: 1 component(s)
+  curl: 1 component(s)
 
 ------------------------------------------------------------
 
 COMPONENT ATTRIBUTIONS
 
+  automated-fuzzer
+  Version: test
+  Source: https://github.com/qarmin/Automated-Fuzzer
+  PURL: pkg:github/qarmin/automated-fuzzer
+  License: UNKNOWN — requires manual review
+
+  aview
+  Version: 1.3.0rc1-6
+  Source: https://snapshot.debian.org/archive/debian/20050312T000000Z/pool/main/a/aview/aview_1.3.0rc1-6_i386.deb
+  PURL: pkg:deb/debian/aview
+  Copyright:
+    (C) 2007 Free Software Foundation; Inc. <http:  fsf.org >
+    Copyright    1991-2020 Unicode; Inc. All rights reserved.
+    Copyright (C) 1989; 1991 Free Software Foundation; Inc.
+    Copyright (c) 2005; Google Inc.
+    Copyright (c) 2015-present libuv project contributors.
+    Copyright copyright text to reflect Google s relinquished ownership
+    Copyright copyright used for BSD software; slightly modified
+  License: GPL-2.0-or-later
+
+  benchmark
+  Version: 571c235
+  Source: https://github.com/google/benchmark
+  PURL: pkg:github/google/benchmark
+  Copyright:
+    Copyright 2015 Google Inc. All rights reserved
+    Copyright 2021 Google Inc. All rights reserved
+    Copyright 2015 Google Inc.
+    Copyright 2016 Ismael Jimenez Martinez
+    Copyright 2016 Ismael Jimenez Martinez. All rights reserved.
+    Copyright 2017 Roman Lebedev. All rights reserved.
+    Copyright 2018 Google Inc.
+    Copyright 2018 Google Inc. All rights reserved.
+    Copyright 2020 Google Inc.
+    Copyright 2020 Google Inc. All rights reserved.
+    Copyright 2021 Google Inc.
+    Copyright copyright owner or entity authorized by
+  License: Apache-2.0
+
+  benchmark
+  Version: v1.8.4-gbenchmark
+  Source: https://github.com/stolyarchuk/benchmark
+  PURL: pkg:github/stolyarchuk/benchmark
+  License: Apache-2.0
+
+  bombic
+  Version: 9cffa5d
+  Source: https://codeberg.org/osgames/bombic/archive/9cffa5d.zip
+  PURL: pkg:codeberg/osgames/bombic
+  Copyright:
+    Copyright 1989 Free Software Foundation Inc
+  License: GPL-2.0-only
+
+  build-artifacts
+  Version: nlohmann_json-v3.11.3
+  Source: https://github.com/xmake-mirror/build-artifacts
+  PURL: pkg:github/xmake-mirror/build-artifacts
+  Copyright:
+    Copyright 2013-2023 Niels Lohmann  https:  nlohmann.me
+    Copyright 2016-2021 Evan Nemerson  evan@nemerson.com
+    Copyright (C) 2004-2008 Ren   Nyffenegger
+    Copyright (C) 2006; 2009 Marcin Kalicinski
+    Copyright (C) 2015 THL A29 Limited; a Tencent company; and Milo Yip. All rights reserved.
+    Copyright (c) 2004-2008 Rene Nyffenegger
+    CopyrightText: 2013-2023 Niels Lohmann <https:  nlohmann.me>
+  License: BSD-2-Clause, MIT
+
+  cereal
+  Version: v1.2.0
+  Source: https://github.com/uscilab/cereal
+  PURL: pkg:github/uscilab/cereal
+  Copyright:
+    Copyright 2004-2008 Ren   Nyffenegger
+    Copyright 2006 Marcin Kalicinski
+    Copyright 2006-2013 Alexander Chemeris
+    Copyright 2013-2022 Randolph Voorhies Shane Grant
+    Copyright 2015 THL A29 Limited a Tencent company and Milo Yip. All rights reserved
+    Copyright (c) 2006; 2007 Marcin Kalicinski
+    Copyright (c) 2013; Randolph Voorhies; Shane Grant
+    Copyright (c) 2014; 2017; Randolph Voorhies; Shane Grant; Juan Pedro
+    Copyright (c) 2014; Randolph Voorhies; Shane Grant
+    Copyright (c) 2015; Kyle Fleming
+    Copyright (c) 2015; Kyle Fleming; Juan Pedro Bolivar Puente
+    Copyright (c) 2016; Randolph Voorhies; Shane Grant
+    Copyright (c) 2017; Juan Pedro Bolivar Puente
+    Copyright (c) 2017; Randolph Voorhies; Shane Grant
+    Copyright (c) 2018; Shane Grant
+  License: BSD-3-Clause
+
+  chemicalfun
+  Version: v0.1.8
+  Source: https://github.com/thermohub/chemicalfun
+  PURL: pkg:github/thermohub/chemicalfun
+  Copyright:
+    Copyright 2013; Google Inc.
+  License: LGPL-2.1-only
+
+  cherrytree
+  Version: 1.0.1
+  Source: https://github.com/giuspen/cherrytree
+  PURL: pkg:github/giuspen/cherrytree
+  Copyright:
+    Copyright 2009; Google Inc.
+  License: GPL-3.0-only
+
+  circt
+  Version: firtool-1.68.0
+  Source: https://github.com/llvm/circt
+  PURL: pkg:github/llvm/circt
+  Copyright:
+    Copyright 1992 Henry Spencer. All rights reserved
+    Copyright 1997-2019 Intel Corporation
+    Copyright 2002-2009 Michael J. Fromberger
+    Copyright 2003-2019 University of Illinois at Urbana-Champaign
+    Copyright 2006 Kirill Simonov
+    Copyright 2007-2018 University of Illinois at Urbana-Champaign
+    Copyright 2007-2019 University of Illinois at Urbana-Champaign
+    Copyright 2008 ; Google Inc.
+    Copyright 2009-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2015 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2019 Polly Team
+    Copyright 2009-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2010 Apple Inc
+    Copyright 2011-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2011-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2012 ; Noah Spurrier <noah@noah.org>
+    Copyright 2013-2014 ; Pexpect development team
+    Copyright 2017 Mattias Jansson
+    Copyright 2017 Maxim Sokolov
+    Copyright 2017-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2019 Intel Corporation. All rights reserved
+    Copyright 2019 Jack O Connor and Samuel Neves
+    Copyright 2021 alex-pinkus
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER
+    Copyright copyright owner or entity authorized by
+  License: Apache-2.0
+
+  conan-googletest
+  Version: 1.9.0-b3
+  Source: https://github.com/odant/conan-googletest
+  PURL: pkg:github/odant/conan-googletest
+  Copyright:
+    Copyright 2008; Google Inc.
+    Copyright 2009; Google Inc.
+  License: MIT
+
+  controlr
+  Version: 1.9.0
+  Source: https://www.npmjs.com/package/controlr
+  PURL: pkg:npm/controlr
+  Copyright:
+    Copyright (c) 2006-2013 Alexander Chemeris
+  License: MIT
+
+  cpp-httplib
+  Version: v0.43.1
+  Source: https://github.com/yhirose/cpp-httplib
+  PURL: pkg:github/yhirose/cpp-httplib
+  Copyright:
+    Copyright 2026 Yuji Hirose. All rights reserved
+  License: MIT
+
+  d2x-xl
+  Version: 1.12.31.7
+  Source: https://sourceforge.net/projects/d2x-xl
+  PURL: pkg:sourceforge/d2x-xl
+  Copyright:
+    Copyright (C) 2015 THL A29 Limited; a Tencent company; and Milo Yip. All rights reserved.
+  License: MIT
+
+  dashlane-c-cli
+  Version: 0.0.1
+  Source: https://github.com/uniflare/dashlane-c-cli
+  PURL: pkg:github/uniflare/dashlane-c-cli
+  Copyright:
+    (C) 1995-2022 Jean-loup Gailly and Mark Adler
+    (C); std::thread(C);
+    (c) 2023; Jeremy Wade; <jeremy.alexander.wade@gmail.com>.
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER LIABILITY; WHETHER IN AN ACTION OF CONTRACT; TORT OR OTHERWISE; ARI
+    Copyright (C) 1989; 1991 Free Software Foundation; Inc.
+    Copyright (c) 2006-2022 Arseny Kapoulkine
+    Copyright (c) 2012-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+  License: GPL-2.0-only, MIT, OpenSSL, Zlib, curl
+
+  deepin-log-viewer
+  Version: 5.8.0.28
+  Source: https://github.com/linuxdeepin/deepin-log-viewer
+  PURL: pkg:github/linuxdeepin/deepin-log-viewer
+  Copyright:
+    Copyright 2008 Google Inc
+    Copyright 2005; Google Inc.
+    Copyright 2006; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2010; Google Inc.
+    Copyright 2013; Google Inc.
+    Copyright 2015; Google Inc.
+    Copyright 2018; Google LLC.
+  License: GPL-3.0-only
+
+  discord-music-presence
+  Version: v2.0.1
+  Source: https://github.com/ungive/discord-music-presence
+  PURL: pkg:github/ungive/discord-music-presence
+  Copyright:
+    Copyright 2005; Google Inc.
+  License: Apache-2.0, BSD-3-Clause, MIT
+
+  doctest
+  Version: 2.4.7
+  Source: https://github.com/doctest/doctest
+  PURL: pkg:github/doctest/doctest
+  Copyright:
+    Copyright (c) 2016-2021 Viktor Kirilov
+  License: MIT
+
+  dxfeed-graal-cxx-api-samples
+  Version: v0.0.0-alpha
+  Source: https://github.com/dxFeed/dxfeed-graal-cxx-api-samples
+  PURL: pkg:github/dxfeed/dxfeed-graal-cxx-api-samples
+  Copyright:
+    Copyright (c) 2016-2023 Viktor Kirilov
+  License: MPL-2.0
+
+  Fall_Semester_programing
+  Version: 32-Linux
+  Source: https://github.com/kirya23/fall_semester_programing
+  PURL: pkg:github/kirya23/fall_semester_programing
+  Copyright:
+    Copyright 1963-1965 Jane Doe Joe Blow John Coe
+    Copyright 1995-2003 Jean-loup Gailly and Mark Adler
+    Copyright 1995-2003 by Jean-loup Gailly
+    Copyright 1995-2010 Geodan Amsterdam  the Netherlands
+    Copyright 1995-2017 Jean-loup Gailly and Mark Adler
+    Copyright 1995-2022 Jean-loup Gailly and Mark Adler
+    Copyright 1996-2019 Julian R Seward. All
+    Copyright 1996-2019 Julian Seward  jseward@acm.org
+    Copyright 1998 by Bob Dellaca
+    Copyright 1998 by Jacques Nomssi Nzali
+    Copyright 2000-2001 ; University of Notre Dame.
+    Copyright 2000-2011 Joerg Walter Mathias Koch David Bellot
+    Copyright 2001-2006 CrystalClear Software Inc
+    Copyright 2001-2014 Gennadiy Rozental. br
+    Copyright 2002 Vladimir Prus
+    Copyright 2002-2003 ; Trustees of Indiana University.
+    Copyright 2002-2006 CrystalClear Software Inc
+    Copyright 2002-2006 Marcin Kalicinski br
+    Copyright 2003 Jeremy B. Maitin-Shepard
+    Copyright 2003 Vladimir Prus
+    Copyright 2003 by Cosmin Truta
+    Copyright 2003-2017 Beman Dawes
+    Copyright 2003-2024 Christopher M. Kohlhoff  chris at kohlhoff dot com
+    Copyright 2004 Vladimir Prus
+    Copyright 2005 Vladimir Prus
+    Copyright 2005-2008 Daniel James
+    Copyright 2006 Andy Tompkins
+    Copyright 2006 Marcin Kalicinski
+    Copyright 2006 Vladimir Prus
+    Copyright 2006-2010 John Maddock and Paul A. Bristow
+    Copyright 2006-2021 Emil Dotchevski. Distributed under the [Boost Software License Version 1.0] http:  www.boost.org LICENSE_1_0.txt
+    Copyright 2007 Vladimir Prus
+    Copyright 2007-2011 Barend Gehrels Amsterdam  the Netherlands
+    Copyright 2007-2013 Barend Gehrels Amsterdam  the Netherlands
+    Copyright 2008 Google Inc
+    Copyright 2008 Jurko Gospodnetic
+    Copyright 2008 Paul A. Bristow John Maddock
+    Copyright 2008-2011 Bruno Lalande Paris  France
+    Copyright 2008-2013 Bruno Lalande Paris  France
+    Copyright 2008-2023 Emil Dotchevski and Reverge Studios Inc. Distributed under the [Boost Software License Version 1.0] http:  www.boost.
+    Copyright 2009 Sebastian Redl
+    Copyright 2009-2011 Mateusz Loskot London  UK
+    Copyright 2009-2013 Mateusz Loskot London  UK
+    Copyright 2010-2001 Timequake man
+    Copyright 2013 Christian Henning
+    Copyright 2013-2020 Boost.Test team
+    Copyright 2013-2022 Niels Lohmann
+    Copyright 2014 Grav
+    Copyright 2014 fqiang
+    Copyright 2015 John Maddock and Paul A. Bristow
+    Copyright 2015-2016 Barrett Adair
+    Copyright 2016 John Maddock. Distributed under the Boost
+    Copyright 2016 MATHIEU CORNIC
+    Copyright 2016 Nicolas Seriot
+    Copyright 2017 James E. King III
+    Copyright 2017 Rene Rivera
+    Copyright 2017 Valere JEANTET
+    Copyright 2018 Joe Blow John Coe
+    Copyright 2018 John Maddock. Distributed under the Boost
+    Copyright 2018 Paul Fultz II
+    Copyright 2018 Peter Dimov
+    Copyright 2018-2021 Peter Dimov
+    Copyright 2018-2022 Peter Dimov
+    Copyright 2018-2023 Emil Dotchevski and Reverge Studios Inc. Distributed under the http:  www.boost.org LICENSE_1_0.txt[Boost Software Li
+    Copyright 2019 Damian Jarek
+    Copyright 2020 Peter Dimov
+    Copyright 2022 Christian Mazakas
+    Copyright 2022 Peter Dimov
+    Copyright 2022-2023 Christian Mazakas
+    Copyright 2022-2023 Peter Dimov
+    Copyright 2022-2023 Peter Dimov and Matt Borland and is distributed under
+    Copyright 2022-2024 Joaqu iacute;n M L oacute;pez Mu ntilde;oz
+    Copyright 2023 Alan de Freitas  alandefreitas@gmail.com)
+    Copyright 2023 Peter Dimov
+    Copyright 2023 Ren   Ferdinand Rivera Morell; Copyright Vladimir Prus; Copyright Jurko Gospodnetic
+    Copyright 2024 Braden Ganetsky
+    Copyright 2024 Christian Mazakas
+    Copyright 2024 Peter Dimov
+    Copyright 2007; Google Inc.
+  License: Apache-2.0, BSD-3-Clause
+
+  firefox
+  Version: DEVEDITION_73_0b2_RELEASE
+  Source: https://github.com/mozilla-firefox/firefox
+  PURL: pkg:github/mozilla-firefox/firefox
+  Copyright:
+    Copyright 2006; Google Inc.
+    Copyright 2008; Google Inc.
+  License: BSD-3-Clause
+
+  FreeCAD-LibPack
+  Version: 3.1.1
+  Source: https://github.com/FreeCAD/FreeCAD-LibPack
+  PURL: pkg:github/freecad/freecad-libpack
+  Copyright:
+    Copyright 2005; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2008 Google Inc.
+  License: LGPL-2.1-only
+
+  Fuzzer
+  Version: 16f5f74
+  Source: https://gitee.com/local-grpc/Fuzzer
+  PURL: pkg:gitee/local-grpc/fuzzer
+  License: NCSA
+
+  gcc
+  Version: basepoints/gcc-10
+  Source: https://github.com/gcc-mirror/gcc
+  PURL: pkg:github/gcc-mirror/gcc
+  Copyright:
+    (C) 1996; 1997; 1998; 1999; 2000; 2001; 2003; 2004; 2005; 2006;
+    Copyright 1996 Gordon Matzigkeit  gord@gnu.ai.mit.edu
+    Copyright 1996-2014 Free Software Foundation Inc
+    Copyright (C) 1994 X Consortium
+    Copyright (C) 2002-2014 Free Software Foundation; Inc.
+    Copyright (C) 2011-2017 Free Software Foundation; Inc.
+    Copyright (c) 1996; 1997; 1998; 1999; 2000; 2001; 2003; 2004; 2005; 2006; 2007; 2008; 2009 Free Software Foundation; Inc.
+  License: GPL-2.0-only
+
+  github.com/abseil/googletest
+  Version: v1.14.1-0.20250212174407-c00fd25b71a1
+  Source: https://proxy.golang.org/github.com/abseil/googletest/@v/v1.14.1-0.20250212174407-c00fd25b71a1.zip
+  PURL: pkg:golang/github.com/abseil/googletest
+  Copyright:
+    Copyright 2005 Google Inc. All Rights Reserved
+    Copyright 2008 Google Inc
+    Copyright 2009 Google Inc. All Rights Reserved
+    Copyright 2015 Google Inc. All rights reserved
+    Copyright 2017 Google Inc
+    Copyright 2018 Google LLC. All rights reserved
+    Copyright 2019 Google LLC. All Rights Reserved
+    Copyright 2020 Google Inc. All Rights Reserved
+    Copyright 2021 Google Inc. All Rights Reserved
+    Copyright 2024 Google Inc
+    Copyright 2005 Google Inc.
+    Copyright 2006; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2009 Google Inc.
+    Copyright 2015 Google Inc.
+    Copyright 2018 Google LLC.
+    Copyright 2019 Google LLC.
+    Copyright 2019; Google Inc.
+    Copyright 2020 Google Inc.
+    Copyright 2021 Google Inc.
+  License: BSD-3-Clause
+
+  github.com/chyezh/cgosymbolizer
+  Version: v0.0.0-20240718183735-925f0b3ad234
+  Source: https://proxy.golang.org/github.com/chyezh/cgosymbolizer/@v/v0.0.0-20240718183735-925f0b3ad234.zip
+  PURL: pkg:golang/github.com/chyezh/cgosymbolizer
+  Copyright:
+    Copyright 2012-2024 Free Software Foundation Inc
+  License: BSD-3-Clause
+
+  github.com/google/googletest
+  Version: v1.14.1-0.20250210182227-4a00a24fff3c
+  Source: https://proxy.golang.org/github.com/google/googletest/@v/v1.14.1-0.20250210182227-4a00a24fff3c.zip
+  PURL: pkg:golang/github.com/google/googletest
+  Copyright:
+    Copyright 2007; Google Inc.
+  License: BSD-3-Clause
+
+  github.com/gperftools/gperftools
+  Version: v0.0.0-20241007172111-6e4984bc1bc2
+  Source: https://proxy.golang.org/github.com/gperftools/gperftools/@v/v0.0.0-20241007172111-6e4984bc1bc2.zip
+  PURL: pkg:golang/github.com/gperftools/gperftools
+  Copyright:
+    Copyright 2005 Google Inc
+    Copyright (c) 2004; Google Inc.
+    Copyright (c) 2006; Google Inc.
+    Copyright (c) 2007; Google Inc.
+    Copyright (c) 2008; Google Inc.
+    Copyright (c) 2009; Google Inc.
+    Copyright (c) 2010 The Chromium Authors
+    Copyright (c) 2010 The Chromium Authors. All rights reserved.
+    Copyright (c) 2011; Google Inc.
+    Copyright (c) 2013; Google Inc.
+    Copyright (c) 2014; 2024; gperftools Contributors
+    Copyright (c) 2016; gperftools Contributors
+    Copyright (c) 2024; gperftools Contributors
+    Copyright 2009 Google Inc. All Rights Reserved.
+  License: BSD-3-Clause
+
+  github.com/ianlancetaylor/cgosymbolizer
+  Version: v0.0.0-20240716002849-277379683ee5
+  Source: https://proxy.golang.org/github.com/ianlancetaylor/cgosymbolizer/@v/v0.0.0-20240716002849-277379683ee5.zip
+  PURL: pkg:golang/github.com/ianlancetaylor/cgosymbolizer
+  Copyright:
+    Copyright 2012-2024 Free Software Foundation Inc
+  License: BSD-3-Clause
+
+  github.com/ianlancetaylor/libbacktrace
+  Version: v0.0.0-20200513181113-9b7f216e8679
+  Source: https://proxy.golang.org/github.com/ianlancetaylor/libbacktrace/@v/v0.0.0-20200513181113-9b7f216e8679.zip
+  PURL: pkg:golang/github.com/ianlancetaylor/libbacktrace
+  Copyright:
+    Copyright 2012-2016 Free Software Foundation Inc
+    Copyright 2012-2018 Free Software Foundation Inc
+  License: BSD-3-Clause
+
+  github.com/USCiLab/cereal
+  Version: v1.3.3-0.20220327215417-ddd467244713
+  Source: https://proxy.golang.org/github.com/uscilab/cereal/@v/v1.3.3-0.20220327215417-ddd467244713.zip
+  PURL: pkg:golang/github.com/uscilab/cereal
+  Copyright:
+    Copyright (c) 2014; Randolph Voorhies; Shane Grant
+  License: BSD-3-Clause, BSL-1.0, MIT
+
+  goog-coredumper/google-perftools
+  Version: 0.1
+  Source: https://sourceforge.net/projects/goog-coredumper/google-perftools
+  PURL: pkg:sourceforge/goog-coredumper/google-perftools
+  License: UNKNOWN — requires manual review
+
+  google-testmock
+  Version: 1.14.0
+  Source: https://www.nuget.org/packages/google-testmock
+  PURL: pkg:nuget/google-testmock
+  Copyright:
+    Copyright 2005; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2008; Google Inc.
+  License: BSD-3-Clause
+
+  googletest
+  Version: e15c5a5
+  Source: https://github.com/google/googletest
+  PURL: pkg:github/google/googletest
+  Copyright:
+    Copyright 2008 ; Google Inc.
+    Copyright 2010 Google Inc. All Rights Reserved
+    Copyright 2017 Google Inc
+    Copyright 2024 Google Inc
+    Copyright 2005; Google Inc.
+    Copyright 2006; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2010 Google Inc.
+    Copyright 2018; Google Inc.
+    Copyright 2020; Google Inc.
+    Copyright copyright owner or entity authorized by
+  License: BSD-3-Clause
+
+  gperftools
+  Version: a81b2eb
+  Source: https://github.com/alk/gperftools
+  PURL: pkg:github/alk/gperftools
+  Copyright:
+    Copyright 2005 Google Inc
+    Copyright 2008 Google Inc
+    Copyright 2012-2016 Free Software Foundation Inc
+    Copyright 2023 gperftools Contributors
+    Copyright (c) 2000; Google Inc.
+    Copyright (c) 2003; Google Inc.
+    Copyright (c) 2004; Google Inc.
+    Copyright (c) 2007; Google Inc.
+    Copyright (c) 2008-2009; Google Inc.
+    Copyright (c) 2011; Google Inc.
+    Copyright (c) 2014; 2024; gperftools Contributors
+    Copyright (c) 2014; gperftools Contributors
+    Copyright (c) 2024; gperftools Contributors
+    Copyright 1994; 1995; 1996; 1999; 2000; 2001; 2002 Free Software
+    Copyright 1994; 1995; 1996; 1999; 2000; 2001; 2002 Free Software Foundation; Inc.
+    Copyright 2009 Google Inc.
+    Copyright 2009 Google Inc. All Rights Reserved.
+  License: BSD-3-Clause
+
+  gperftools
+  Version: gperftools-2.16.90
+  Source: https://github.com/gperftools/gperftools
+  PURL: pkg:github/gperftools/gperftools
+  Copyright:
+    Copyright 2005 ; Google Inc.
+    Copyright 2008 ; Google Inc.
+    Copyright 2012-2016 Free Software Foundation Inc
+    Copyright 2014 gperftools Contributors
+    Copyright 2026 gperftools Contributors
+    Copyright (c) 2003; Google Inc.
+    Copyright (c) 2004; Google Inc.
+    Copyright (c) 2006; Google Inc.
+    Copyright (c) 2007; Google Inc.
+    Copyright (c) 2009; Google Inc.
+    Copyright (c) 2011; Google Inc.
+    Copyright (c) 2013; Google Inc.
+    Copyright (c) 2021; IBM Ltd.
+    Copyright (c) 2021; gperftools Contributors
+    Copyright (c) 2023; gperftools Contributors
+    Copyright (c) 2024; gperftools Contributors
+  License: BSD-3-Clause
+
+  gperftools
+  Version: gperftools-2.15
+  Source: https://github.com/Navezjt/gperftools
+  PURL: pkg:github/navezjt/gperftools
+  Copyright:
+    Copyright (c) 2005; Google Inc.
+    Copyright (c) 2006; Google Inc.
+    Copyright (c) 2007; Google Inc.
+    Copyright (c) 2008; Google Inc.
+    Copyright (c) 2009; Google Inc.
+    Copyright (c) 2010; Google Inc.
+    Copyright (c) 2024; gperftools Contributors
+  License: BSD-3-Clause
+
+  GridGenerator
+  Version: V0.0.2
+  Source: https://github.com/sfcmm/gridgenerator
+  PURL: pkg:github/sfcmm/gridgenerator
+  Copyright:
+    Copyright (c) 2014 Jarryd Beck
+    Copyright (c) 2021; Institute of Surface Science @ Hereon
+    Copyright 2008; Google Inc.
+    Copyright copyright owner or entity authorized by
+  License: Apache-2.0, BSD-2-Clause, BSD-3-Clause, MIT
+
+  gym-app
+  Version: v1.0.0
+  Source: https://github.com/thavarshan/gym-app
+  PURL: pkg:github/thavarshan/gym-app
+  Copyright:
+    Copyright 2005; Google Inc.
+    Copyright 2018; Google Inc.
+  License: MIT
+
+  HELICS
+  Version: v1.0.0-beta.2
+  Source: https://github.com/GMLC-TDC/HELICS
+  PURL: pkg:github/gmlc-tdc/helics
+  Copyright:
+    Copyright (C) 2006; 2009 Marcin Kalicinski
+    Copyright (C) 2015 THL A29 Limited; a Tencent company; and Milo Yip. All rights reserved.
+  License: BSD-3-Clause
+
+  hesea_lib
+  Version: 3309fcb
+  Source: https://github.com/privasea/hesea_lib
+  PURL: pkg:github/privasea/hesea_lib
+  Copyright:
+    Copyright (c) 2014; Randolph Voorhies; Shane Grant
+  License: BSD-2-Clause
+
+  image_processing
+  Version: 40edd53
+  Source: https://github.com/hermosayhl/image_processing
+  PURL: pkg:github/hermosayhl/image_processing
+  Copyright:
+    Copyright (c) 2016 The Pybind Development Team; All rights reserved.
+    Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>; All rights reserved.
+    Copyright copyright owner or entity authorized by
+  License: Apache-2.0, BSD-3-Clause, BSD-3-Clause-LBNL
+
+  imodel-native
+  Version: v4.0.6
+  Source: https://github.com/itwin/imodel-native
+  PURL: pkg:github/itwin/imodel-native
+  Copyright:
+    Copyright 2008 Google Inc
+    Copyright 2009 Google Inc. All rights reserved
+    Copyright 2006; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2009 Google Inc.
+    Copyright 2013; Google Inc.
+    Copyright 2015; Google Inc.
+    Copyright 2018; Google Inc.
+  License: Apache-2.0
+
+  json
+  Version: v3.11.3
+  Source: https://github.com/nlohmann/json
+  PURL: pkg:github/nlohmann/json
+  Copyright:
+    Copyright 2007 Free Software Foundation Inc.  http:  fsf.org
+    Copyright 2008-2009 Bj  rn Hoehrmann  bjoern@hoehrmann.de
+    Copyright 2009 Florian Loitsch  https:  florian.loitsch.com
+    Copyright 2013-2019 Niels Lohmann  http:  nlohmann.me
+    Copyright 2013-2022 Niels Lohmann
+    Copyright 2013-2022 Niels Lohmann  http:  nlohmann.me
+    Copyright 2013-2023 Niels Lohmann
+    Copyright 2013-2023 Niels Lohmann  https:  nlohmann.me
+    Copyright 2013-2025 Niels Lohmann
+    Copyright 2013-2026 Niels Lohmann
+    Copyright 2013-2026 Niels Lohmann  https:  nlohmann.me
+    Copyright 2018 The Abseil Authors
+    Copyright 2018 Vitaliy Manushkin  agri@akamo.info
+    Copyright 2020 Hannes Domani] https:  github.com ssbssa
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER LIABILITY; WHETHER IN AN ACTION OF CONTRACT; TORT OR OTHERWISE; ARI
+    Copyright (C) 2009 Google Inc.
+    Copyright (c) 2009 Florian Loitsch.
+    Copyright (c) 2012; Erik Edlund <erik.edlund@32767.se>
+    Copyright (c) 2016-2021 Viktor Kirilov
+    Copyright 2008-2009 Bjorn Hoehrmann <bjoern@hoehrmann.de>
+    CopyrightText: 2008-2009 Bj  rn Hoehrmann <bjoern@hoehrmann.de>
+    CopyrightText: 2009 Florian Loitsch <https:  florian.loitsch.com >
+    CopyrightText: 2013-2023 Niels Lohmann <https:  nlohmann.me>
+  License: MIT
+
+  lab06
+  Version: v1.0.0
+  Source: https://github.com/PhilippD3/lab06
+  PURL: pkg:github/philippd3/lab06
+  Copyright:
+    Copyright 2007; Google Inc.
+  License: BSD-3-Clause
+
+  libbacktrace
+  Version: 86885d1
+  Source: https://github.com/ianlancetaylor/libbacktrace
+  PURL: pkg:github/ianlancetaylor/libbacktrace
+  Copyright:
+    Copyright 2012-2016 Free Software Foundation Inc
+    Copyright 2012-2024 Free Software Foundation Inc
+    Copyright (C) 2013-2024 Free Software Foundation; Inc.
+    Copyright (C) 2015-2024 Free Software Foundation; Inc.
+    Copyright (C) 2017-2024 Free Software Foundation; Inc.
+    Copyright (C) 2018-2024 Free Software Foundation; Inc.
+    Copyright (C) 2020-2024 Free Software Foundation; Inc.
+    Copyright (C) 2022-2024 Free Software Foundation; Inc.
+    Copyright (c) 2012-2024 Free Software Foundation; Inc. Adapted
+    Copyright (c) 2015-2024 Free Software Foundation; Inc. Adapted
+  License: BSD-2-Clause, BSD-3-Clause
+
+  libwebrtc-bin
+  Version: 113.5672.0.0
+  Source: https://github.com/crow-misia/libwebrtc-bin
+  PURL: pkg:github/crow-misia/libwebrtc-bin
+  Copyright:
+    Copyright 1993 The Regents of the University of California.
+    Copyright 1995 97 Mark Olesen  lt;olesen@me.QueensU.CA gt
+    Copyright 1995-1996 Guy Eric Schalnat Group 42  Inc
+    Copyright 1995-1998 Eric Young  eay@cryptsoft.com)
+    Copyright 1995-2022 Jean-loup Gailly and Mark Adler
+    Copyright 1995-2024 Jean-loup Gailly and Mark Adler
+    Copyright 1995-2026 Jean-loup Gailly and Mark Adler
+    Copyright 1996-1997 Andreas Dilger
+    Copyright 1996-1997 Andreas Dilger are derived from libpng-0.88
+    Copyright 1996-2010 the NASM Authors - All rights reserved
+    Copyright 1998 Todd C. Miller  lt;Todd.Miller@courtesan.com gt;
+    Copyright 1998-2000 Glenn Randers-Pehrson are derived from
+    Copyright 1998-2011 The OpenSSL Project.  All rights reserved.
+    Copyright 1999 Pai-Hsiang Hsiao
+    Copyright 1999-2000 Ross Bencina and Phil Burk
+    Copyright 2000 Dug Song  lt;dugsong@monkey.org gt;
+    Copyright 2000-2007 Niels Provos  lt;provos@citi.umich.edu gt;
+    Copyright 2001 Steve Underwood
+    Copyright 2001-2011 Xiph.Org; Skype Limited; Octasic;
+    Copyright 2001-2017 Cisco Systems Inc
+    Copyright 2001-2023 Xiph.Org Skype Limited Octasic
+    Copyright 2002 Niels Provos  lt;provos@citi.umich.edu gt
+    Copyright 2003 Michael A. Davis  lt;mike@datanerds.net gt;
+    Copyright 2003-2004 ; Mark Borgerding
+    Copyright 2004 the University Corporation for Atmospheric
+    Copyright 2005 David Turner
+    Copyright 2005 Steve Underwood
+    Copyright 2005-2008 ; The Android Open Source Project
+    Copyright 2005-2017 ; Xiph.Org Foundation
+    Copyright 2006 Maxim Yegorushkin  lt;maxim.yegorushkin@gmail.com gt
+    Copyright 2007 Sun Microsystems
+    Copyright 2007-2010 Baptiste Lepilleur
+    Copyright 2007-2010 Niels Provos and Nick Mathewson
+    Copyright 2007-2017 ; Jean-Marc Valin
+    Copyright 2007-2019 University of Illinois at Urbana-Champaign
+    Copyright 2008 Google Inc.  All rights reserved.
+    Copyright 2009 The Go Authors. All rights reserved
+    Copyright 2009-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2015 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2023 D. R. Commander.  All Rights Reserved. lt;br gt;
+    Copyright 2009-2024 D. R. Commander.  All Rights Reserved. lt;br gt;
+    Copyright 2010 ; The WebM Project authors. All rights reserved.
+    Copyright 2010 The Android Open Source Project
+    Copyright 2011 ; The WebRTC project authors. All rights reserved.
+    Copyright 2011 Google Inc. All Rights Reserved.
+    Copyright 2011 The LibYuv Project Authors. All rights reserved
+    Copyright 2013 Brian Eugene Wilson Robert Martin Campbell
+    Copyright 2013 Julien Pommier   pommier@modartt.com )
+    Copyright 2014 The Bazel Authors
+    Copyright 2015 The Chromium Authors
+    Copyright 2015 The Chromium Authors. All rights reserved
+    Copyright 2015 Viktor Szathm  ry.  All Rights Reserved.
+    Copyright 2015-2016 the fiat-crypto authors (see
+    Copyright 2015-2020 the fiat-crypto authors (see
+    Copyright 2015-2020 the fiat-crypto authors (see the AUTHORS file)
+    Copyright 2016 ; Alliance for Open Media. All rights reserved.
+    Copyright 2016 Ismael Jimenez Martinez. All rights reserved
+    Copyright 2017 ; Mozilla
+    Copyright 2017 ; The Android Open Source Project
+    Copyright 2017 ; The CRC32C Authors.
+    Copyright 2017 Roman Lebedev. All rights reserved
+    Copyright 2018-2019 Cosmin Truta
+    Copyright 2019 Yibo Cai
+    Copyright 2019 Zenichi Amano
+    Copyright 2022 ; Google Inc.
+    Copyright 2022 Google LLC
+    Copyright 2023 The Chromium Authors
+    Copyright 2024 The Bazel Authors
+    Copyright 2025 The syntaqlite Authors. All rights reserved
+    Copyright 2016 Ismael Jimenez Martinez
+    Copyright copyright owner or entity authorized by
+  License: Apache-2.0
+
+  llvm-nightly
+  Version: snapshot-20211216
+  Source: https://github.com/heterosys/llvm-nightly
+  PURL: pkg:github/heterosys/llvm-nightly
+  Copyright:
+    Copyright 1992 Henry Spencer. All rights reserved
+    Copyright 1997-2019 Intel Corporation
+    Copyright 2002-2009 Michael J. Fromberger
+    Copyright 2003-2019 University of Illinois at Urbana-Champaign
+    Copyright 2006 Kirill Simonov
+    Copyright 2007-2018 University of Illinois at Urbana-Champaign
+    Copyright 2007-2019 University of Illinois at Urbana-Champaign
+    Copyright 2008 ; Google Inc.
+    Copyright 2009-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2015 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2019 Polly Team
+    Copyright 2009-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2010 Apple Inc
+    Copyright 2011-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2011-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2012 ; Noah Spurrier <noah@noah.org>
+    Copyright 2013-2014 ; Pexpect development team
+    Copyright 2013-2016 Pexpect development team
+    Copyright 2017-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2019 Intel Corporation. All rights reserved
+    Copyright 2019 Jack O Connor and Samuel Neves
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER
+    Copyright (c) 2010-2015 Benjamin Peterson
+    Copyright copyright owner or entity authorized by
+  License: Apache-2.0 WITH LLVM-exception
+
+  llvm-project
+  Version: 36e2577
+  Source: https://github.com/chapuni/llvm-project
+  PURL: pkg:github/chapuni/llvm-project
+  Copyright:
+    Copyright 1991 Todd A. Proebsting
+    Copyright 1991 by the Massachusetts Institute of Technology
+    Copyright 1992 Henry Spencer. All rights reserved
+    Copyright 1997-2016 Intel Corporation
+    Copyright 1997-2019 Intel Corporation
+    Copyright 2003 University of Illinois at Urbana-Champaign. All rights
+    Copyright 2003-2016 University of Illinois at Urbana-Champaign
+    Copyright 2003-2019 University of Illinois at Urbana-Champaign.
+    Copyright 2004 Free Software Foundation Inc
+    Copyright 2004 eXtensible Systems Inc
+    Copyright 2006 Kirill Simonov
+    Copyright 2007-2016 University of Illinois at Urbana-Champaign
+    Copyright 2007-2019 University of Illinois at Urbana-Champaign.
+    Copyright 2008 ; Google Inc.
+    Copyright 2008 Noah Spurrier
+    Copyright 2009 The Go Authors. All rights reserved.
+    Copyright 2009-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2015 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2016 Polly Team
+    Copyright 2009-2016 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2019 Polly Team
+    Copyright 2009-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2010 Apple Inc
+    Copyright 2010-2015 Benjamin Peterson
+    Copyright 2011-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2011-2016 by the contributors listed in CREDITS.TXT
+    Copyright 2011-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2012 ; Noah Spurrier <noah@noah.org>
+    Copyright 2013-2014 ; Pexpect development team
+    Copyright 2017-2019 by the contributors listed in CREDITS.TXT
+    Copyright 2019 The LLVM Developers
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER
+    Copyright copyright patent holders of the
+  License: Apache-2.0, Apache-2.0 WITH LLVM-exception, Apache-2.0 WITH LLVM-exception AND NCSA, Apache-2.0 WITH LLVM-exception AND NCSA AND NCSA OR MIT AND NCSA AND MIT, BSD-3-Clause, ISC, MIT, NCSA
+
+  llvm-project-legacy-branches
+  Version: google/stable/2016-11-22
+  Source: https://github.com/llvm/llvm-project-legacy-branches
+  PURL: pkg:github/llvm/llvm-project-legacy-branches
+  Copyright:
+    Copyright 1991 by the Massachusetts Institute of Technology
+    Copyright 1992 Henry Spencer. All rights reserved
+    Copyright 1997-2014 Intel Corporation
+    Copyright 1997-2016 Intel Corporation
+    Copyright 2003-2009 Jonathan  Wolf  Rentzsch:  http:  rentzsch.com
+    Copyright 2003-2012 University of Illinois at Urbana-Champaign
+    Copyright 2003-2014 University of Illinois at Urbana-Champaign.
+    Copyright 2003-2016 University of Illinois at Urbana-Champaign.
+    Copyright 2004 Free Software Foundation Inc
+    Copyright 2004 eXtensible Systems Inc
+    Copyright 2006 Kirill Simonov
+    Copyright 2007-2012 University of Illinois at Urbana-Champaign
+    Copyright 2007-2014 University of Illinois at Urbana-Champaign.
+    Copyright 2007-2015 University of Illinois at Urbana-Champaign.
+    Copyright 2007-2016 University of Illinois at Urbana-Champaign.
+    Copyright 2008 ; Google Inc.
+    Copyright 2008 Noah Spurrier
+    Copyright 2009 The Go Authors. All rights reserved.
+    Copyright 2009-2010 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2012 Polly Team
+    Copyright 2009-2012 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2014 Polly Team
+    Copyright 2009-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2015 by the contributors listed in CREDITS.TXT
+    Copyright 2009-2016 Polly Team
+    Copyright 2009-2016 by the contributors listed in CREDITS.TXT
+    Copyright 2010 Apple Inc
+    Copyright 2010-2015 Benjamin Peterson
+    Copyright 2011 ; 2012
+    Copyright 2011 by the contributors listed in CREDITS.TXT
+    Copyright 2011-2012 by the contributors listed in CREDITS.TXT
+    Copyright 2011-2014 by the contributors listed in CREDITS.TXT
+    Copyright 2011-2016 by the contributors listed in CREDITS.TXT
+  License: Apache-2.0, CC0-1.0, MIT, NCSA
+
+  log
+  Version: 16a57b3
+  Source: https://gitee.com/for_ten_years/log
+  PURL: pkg:gitee/for_ten_years/log
+  Copyright:
+    Copyright 1989 Free Software Foundation Inc.
+    Copyright 2016 Gabi Melman
+    Copyright (C) 1989; 1991 Free Software Foundation; Inc.;
+  License: GPL-2.0-only
+
+  maingopy
+  Version: 0.8.1
+  Source: https://pypi.org/project/maingopy
+  PURL: pkg:pypi/maingopy
+  Copyright:
+    Copyright 2005; Google Inc.
+    Copyright 2009 Google Inc.
+    Copyright 2009 Google Inc. All Rights Reserved.
+  License: EPL-2.0
+
+  nurikit
+  Version: 0.1.0a14.post0
+  Source: https://pypi.org/project/nurikit
+  PURL: pkg:pypi/nurikit
+  Copyright:
+    Copyright 2017 Google Inc
+    Copyright 2007; Google Inc.
+  License: Apache-2.0
+
+  objektinis-prog-class
+  Version: ver2.0
+  Source: https://github.com/mykolassl/objektinis-prog-class
+  PURL: pkg:github/mykolassl/objektinis-prog-class
+  Copyright:
+    Copyright 2008; Google Inc.
+  License: BSD-3-Clause
+
+  open3d
+  Version: main-devel
+  Source: https://github.com/isl-org/Open3D
+  PURL: pkg:github/isl-org/open3d
+  Copyright:
+    Copyright 2008 Google Inc
+    Copyright 2005; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2015; Google Inc.
+  License: MIT
+
+  openfhe-development
+  Version: cs-fix
+  Source: https://github.com/openfheorg/openfhe-development
+  PURL: pkg:github/openfheorg/openfhe-development
+  Copyright:
+    Copyright 2022 ; OpenFHE
+    Copyright  c) 2014-2022  NJIT  Duality Technologies Inc. and other contributors
+    Copyright  c) 2014-2023  NJIT  Duality Technologies Inc. and other contributors
+    Copyright  c) 2014-2024  NJIT  Duality Technologies Inc. and other contributors
+    Copyright  c) 2014-2025  NJIT  Duality Technologies Inc. and other contributors
+    Copyright  c) 2014-2026  NJIT  Duality Technologies Inc. and other contributors
+    Copyright (c) 2014-2022; NJIT; Duality Technologies Inc. and other contributors
+    Copyright (c) 2014-2023; NJIT; Duality Technologies Inc. and other contributors
+    Copyright (c) 2014-2024; NJIT; Duality Technologies Inc. and other contributors
+    Copyright (c) 2014-2025; NJIT; Duality Technologies Inc. and other contributors
+    Copyright 2012; Samuel Neves <sneves@dei.uc.pt>
+    Copyright 2012; Samuel Neves <sneves@dei.uc.pt>.  You may use this under the
+    Copyright 2016; JP Aumasson <jeanphilippe.aumasson@gmail.com>
+    Copyright 2016; Samuel Neves <sneves@dei.uc.pt>
+  License: BSD-2-Clause
+
+  openfhe-python
+  Version: v1.4.2.0
+  Source: https://github.com/openfheorg/openfhe-python
+  PURL: pkg:github/openfheorg/openfhe-python
+  Copyright:
+    Copyright 2022 ; OpenFHE
+    Copyright  c) 2023-2025  Duality Technologies Inc. and other contributors
+    Copyright (c) 2023-2025; Duality Technologies Inc. and other contributors
+  License: BSD-2-Clause
+
+  Otus_IP_filter
+  Version: 3
+  Source: https://github.com/daniil199820/otus_ip_filter
+  PURL: pkg:github/daniil199820/otus_ip_filter
+  Copyright:
+    Copyright 2009 Google Inc. All rights reserved
+    Copyright 2009 Google Inc.
+  License: BSD-3-Clause
+
+  PaperFriend-desktop-app
+  Version: cse201_final
+  Source: https://github.com/CSE201-project/PaperFriend-desktop-app
+  PURL: pkg:github/cse201-project/paperfriend-desktop-app
+  Copyright:
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER LIABILITY; WHETHER IN AN ACTION OF CONTRACT; TORT OR OTHERWISE; ARI
+    Copyright copyright interest in the
+  License: UNKNOWN — requires manual review
+
+  pkcs11_solid
+  Version: result-addition
+  Source: https://github.com/AndreanIvan/pkcs11_solid
+  PURL: pkg:github/andreanivan/pkcs11_solid
+  Copyright:
+    Copyright 2007; Google Inc.
+  License: BSD-3-Clause
+
+  platform.external.googletest
+  Version: android-14.0.0_r32
+  Source: https://github.com/msft-mirror-aosp/platform.external.googletest
+  PURL: pkg:github/msft-mirror-aosp/platform.external.googletest
+  Copyright:
+    Copyright 2005; Google Inc.
+    Copyright 2006; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2008; Google Inc.
+  License: BSD-3-Clause
+
+  platform/external/google-benchmark
+  Version: platform-tools-30.0.1
+  Source: https://android.googlesource.com/platform/external/google-benchmark/+archive/platform-tools-30.0.1.tar.gz
+  PURL: pkg:googlesource/android/platform/external/google-benchmark
+  Copyright:
+    Copyright 2015 Google Inc. All rights reserved
+    Copyright 2015 Google Inc.
+  License: Apache-2.0
+
+  platform/external/googletest
+  Version: aml_ads_351017080
+  Source: https://android.googlesource.com/platform/external/googletest/+archive/aml_ads_351017080.tar.gz
+  PURL: pkg:googlesource/android/platform/external/googletest
+  Copyright:
+    Copyright 2024 Google Inc
+    Copyright 2007; Google Inc.
+  License: BSD-3-Clause
+
+  Pyfhel
+  Version: 7148501
+  Source: https://github.com/ibarrond/Pyfhel
+  PURL: pkg:github/ibarrond/pyfhel
+  Copyright:
+    (C) 2007 Free Software Foundation; Inc. <http:  fsf.org >
+    Copyright copyright owner or entity authorized by
+  License: GPL-3.0-only
+
+  rayx
+  Version: v0.19.4
+  Source: https://github.com/hz-b/rayx
+  PURL: pkg:github/hz-b/rayx
+  Copyright:
+    Copyright 2007; Google Inc.
+  License: MIT
+
+  slowfuzz
+  Version: e124345
+  Source: https://github.com/nettrino/slowfuzz
+  PURL: pkg:github/nettrino/slowfuzz
+  License: NCSA
+
+  Snake
+  Version: v1.0.0
+  Source: https://github.com/ILTZ/Snake
+  PURL: pkg:github/iltz/snake
+  Copyright:
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER LIABILITY; WHETHER IN AN ACTION OF CONTRACT; TORT OR OTHERWISE; ARI
+    Copyright (C) 2007-2018 Laurent Gomila - laurent@sfml-dev.org
+  License: UNKNOWN — requires manual review
+
+  startle
+  Version: v1.1.0
+  Source: https://github.com/raphael-group/startle
+  PURL: pkg:github/raphael-group/startle
+  Copyright:
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER LIABILITY; WHETHER IN AN ACTION OF CONTRACT; TORT OR OTHERWISE; ARI
+    Copyright (c) 2016 Gabi Melman.
+    Copyright (c) 2017-2019 Vincent La
+    Copyright (c) 2018 Pranav Srinivas Kumar <pranav.srinivas.kumar@gmail.com>
+    Copyright 2008; Google Inc.
+  License: UNKNOWN — requires manual review
+
+  Task_2
+  Version: 3
+  Source: https://github.com/VishnenkoMaxim/Task_2
+  PURL: pkg:github/vishnenkomaxim/task_2
+  Copyright:
+    Copyright 2008 Google Inc
+  License: BSD-3-Clause
+
+  Torque2D
+  Version: v4.0-ea3
+  Source: https://github.com/TorqueGameEngines/Torque2D
+  PURL: pkg:github/torquegameengines/torque2d
+  Copyright:
+    Copyright 2005 Google Inc.
+    Copyright 2005 Google Inc. All Rights Reserved.
+    Copyright 2006; Google Inc.
+    Copyright 2008; Google Inc.
+    Copyright 2009; Google Inc.
+    Copyright 2010; Google Inc.
+    Copyright 2017 Google Inc.
+    Copyright 2025; Google Inc.
+  License: MIT
+
+  tsunami_lab
+  Version: v0.3.0
+  Source: https://github.com/xLPMG/tsunami_lab
+  PURL: pkg:github/xlpmg/tsunami_lab
+  Copyright:
+    Copyright 2015-2017 Niels Lohmann
+    Copyright COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM; DAMAGES OR OTHER LIABILITY; WHETHER IN AN ACTION OF CONTRACT; TORT OR OTHERWISE; ARI
+    Copyright (c) 2020-2023; Friedrich Schiller University Jena
+  License: BSD-2-Clause
+
+  under-the-c-desktop
+  Version: iteration-4
+  Source: https://github.com/EECE3093C/under-the-c-desktop
+  PURL: pkg:github/eece3093c/under-the-c-desktop
+  Copyright:
+    Copyright 2008; Google Inc.
+  License: BSD-3-Clause
+
+  upx
+  Version: v3.00
+  Source: https://github.com/upx/upx
+  PURL: pkg:github/upx/upx
+  Copyright:
+    Copyright 1999-2017 Free Software Foundation Inc
+  License: GPL-2.0-or-later
+
+  uthenticode
+  Version: v1.0.7
+  Source: https://github.com/trailofbits/uthenticode
+  PURL: pkg:github/trailofbits/uthenticode
+  Copyright:
+    Copyright (c) 2020 William Woodruff <william @ yossarian.net>
+    Copyright 2008; Google Inc.
+    Copyright 2015; Google Inc.
+  License: MIT
+
+  winchecksec
+  Version: v3.1.0
+  Source: https://github.com/trailofbits/winchecksec
+  PURL: pkg:github/trailofbits/winchecksec
+  Copyright:
+    Copyright 2008 Google Inc
+    Copyright 2017 Google Inc
+    Copyright 2005; Google Inc.
+    Copyright 2006; Google Inc.
+    Copyright 2007; Google Inc.
+    Copyright 2009; Google Inc.
+    Copyright 2018; Google Inc.
+    Copyright 2019; Google LLC.
+  License: Apache-2.0
+
+  yunpin-ime
+  Version: v0.1.0-preview.3
+  Source: https://github.com/kukuyan/yunpin-ime
+  PURL: pkg:github/kukuyan/yunpin-ime
+  Copyright:
+    Copyright 2020; Google Inc.
+  License: Apache-2.0, BSD-3-Clause, CC-BY-4.0, GPL-3.0-only, LGPL-3.0-only
+
 ------------------------------------------------------------
 
 FULL LICENSE TEXTS
+
+--- GPL-2.0-or-later ---
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+Full license text: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+
+--- Apache-2.0 ---
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+--- GPL-2.0-only ---
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation; version 2 of the License.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+Full license text: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+
+--- MIT ---
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+--- BSD-2-Clause ---
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+--- BSD-3-Clause ---
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+--- LGPL-2.1-only ---
+
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; version 2.1 of the License.
+
+This library is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+Full license text: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+
+--- GPL-3.0-only ---
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+Full license text: https://www.gnu.org/licenses/gpl-3.0.html
+
+
+--- Zlib ---
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the
+use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software in
+   a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+
+
+--- OpenSSL ---
+
+OpenSSL License
+
+Copyright (c) 1998-2008 The OpenSSL Project. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. All advertising materials mentioning features or use of this software must display the following acknowledgment: "This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+
+4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to endorse or promote products derived from this software without prior written permission. For written permission, please contact openssl-core@openssl.org.
+
+5. Products derived from this software may not be called "OpenSSL" nor may "OpenSSL" appear in their names without prior written permission of the OpenSSL Project.
+
+6. Redistributions of any form whatsoever must retain the following acknowledgment: "This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+
+THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE OpenSSL PROJECT OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This product includes cryptographic software written by Eric Young (eay@cryptsoft.com). This product includes software written by Tim Hudson (tjh@cryptsoft.com).
+
+
+Original SSLeay License
+
+Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com) All rights reserved.
+
+This package is an SSL implementation written by Eric Young (eay@cryptsoft.com). The implementation was written so as to conform with Netscapes SSL.
+
+This library is free for commercial and non-commercial use as long as the following conditions are aheared to. The following conditions apply to all code found in this distribution, be it the RC4, RSA, lhash, DES, etc., code; not just the SSL code. The SSL documentation included with this distribution is covered by the same copyright terms except that the holder is Tim Hudson (tjh@cryptsoft.com).
+
+Copyright remains Eric Young's, and as such any Copyright notices in the code are not to be removed. If this package is used in a product, Eric Young should be given attribution as the author of the parts of the library used. This can be in the form of a textual message at program startup or in documentation (online or textual) provided with the package.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. All advertising materials mentioning features or use of this software must display the following acknowledgement:
+"This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)"
+The word 'cryptographic' can be left out if the rouines from the library being used are not cryptographic related :-).
+
+4. If you include any Windows specific code (or a derivative thereof) from the apps directory (application code) you must include an acknowledgement: "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
+
+THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The licence and distribution terms for any publically available version or derivative of this code cannot be changed. i.e. this code cannot simply be copied and put under another distribution licence [including the GNU Public Licence.]
+
+
+
+--- curl ---
+
+COPYRIGHT AND PERMISSION NOTICE
+
+Copyright (c) 1996 - 2015, Daniel Stenberg, <daniel@haxx.se>.
+All rights reserved.
+
+Permission to use, copy, modify, and distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Except as contained in this notice, the name of a copyright holder shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization of the copyright holder.
+
+
+
+--- MPL-2.0 ---
+
+This Source Code Form is subject to the terms of the Mozilla Public License,
+v. 2.0. If a copy of the MPL was not distributed with this file, You can
+obtain one at https://mozilla.org/MPL/2.0/.
+
+Full license text: https://www.mozilla.org/en-US/MPL/2.0/
+
+
+--- NCSA ---
+
+University of Illinois/NCSA Open Source License
+
+Copyright (c) <Year> <Owner Organization Name>. All rights reserved.
+
+Developed by: <Name of Development Group> <Name of Institution> <URL for Development Group/Institution>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal with the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+     * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimers.
+
+     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimers in the documentation and/or other materials provided with the distribution.
+
+     * Neither the names of <Name of Development Group, Name of Institution>, nor the names of its contributors may be used to endorse or promote products derived from this Software without specific prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
+
+
+
+--- BSL-1.0 ---
+
+Boost Software License - Version 1.0 - August 17th, 2003
+
+Permission is hereby granted, free of charge, to any person or organization obtaining a copy of the software and accompanying documentation covered by this license (the "Software") to use, reproduce, display, distribute, execute, and transmit the Software, and to prepare derivative works of the Software, and to permit third-parties to whom the Software is furnished to do so, all subject to the following:
+
+The copyright notices in the Software and this entire statement, including the above license grant, this restriction and the following disclaimer, must be included in all copies of the Software, in whole or in part, and all derivative works of the Software, unless such copies or derivative works are solely in the form of machine-executable object code generated by a source language processor.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+--- BSD-3-Clause-LBNL ---
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+--- Apache-2.0 WITH LLVM-exception ---
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+--- ISC ---
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+
+--- Apache-2.0 WITH LLVM-exception AND NCSA AND NCSA OR MIT AND NCSA AND MIT ---
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+--- Apache-2.0 WITH LLVM-exception AND NCSA ---
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+--- CC0-1.0 ---
+
+The person who associated a work with this deed has dedicated the work to
+the public domain by waiving all of his or her rights to the work worldwide
+under copyright law, including all related and neighboring rights, to the
+extent allowed by law.
+
+You can copy, modify, distribute and perform the work, even for commercial
+purposes, all without asking permission.
+
+Full license text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+
+--- EPL-2.0 ---
+
+Eclipse Public License - v 2.0
+THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC LICENSE (“AGREEMENT”). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
+
+1. DEFINITIONS
+“Contribution” means:
+
+a) in the case of the initial Contributor, the initial content Distributed under this Agreement, and
+b) in the case of each subsequent Contributor:
+i) changes to the Program, and
+ii) additions to the Program;
+where such changes and/or additions to the Program originate from and are Distributed by that particular Contributor. A Contribution “originates” from a Contributor if it was added to the Program by such Contributor itself or anyone acting on such Contributor's behalf. Contributions do not include changes or additions to the Program that are not Modified Works.
+“Contributor” means any person or entity that Distributes the Program.
+
+“Licensed Patents” mean patent claims licensable by a Contributor which are necessarily infringed by the use or sale of its Contribution alone or when combined with the Program.
+
+“Program” means the Contributions Distributed in accordance with this Agreement.
+
+“Recipient” means anyone who receives the Program under this Agreement or any Secondary License (as applicable), including Contributors.
+
+“Derivative Works” shall mean any work, whether in Source Code or other form, that is based on (or derived from) the Program and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship.
+
+“Modified Works” shall mean any work in Source Code or other form that results from an addition to, deletion from, or modification of the contents of the Program, including, for purposes of clarity any new file in Source Code form that contains any contents of the Program. Modified Works shall not include works that contain only declarations, interfaces, types, classes, structures, or files of the Program solely in each case in order to link to, bind by name, or subclass the Program or Modified Works thereof.
+
+“Distribute” means the acts of a) distributing or b) making available in any manner that enables the transfer of a copy.
+
+“Source Code” means the form of a Program preferred for making modifications, including but not limited to software source code, documentation source, and configuration files.
+
+“Secondary License” means either the GNU General Public License, Version 2.0, or any later versions of that license, including any exceptions or additional permissions as identified by the initial Contributor.
+
+2. GRANT OF RIGHTS
+a) Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, Distribute and sublicense the Contribution of such Contributor, if any, and such Derivative Works.
+b) Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed Patents to make, use, sell, offer to sell, import and otherwise transfer the Contribution of such Contributor, if any, in Source Code or other form. This patent license shall apply to the combination of the Contribution and the Program if, at the time the Contribution is added by the Contributor, such addition of the Contribution causes such combination to be covered by the Licensed Patents. The patent license shall not apply to any other combinations which include the Contribution. No hardware per se is licensed hereunder.
+c) Recipient understands that although each Contributor grants the licenses to its Contributions set forth herein, no assurances are provided by any Contributor that the Program does not infringe the patent or other intellectual property rights of any other entity. Each Contributor disclaims any liability to Recipient for claims brought by any other entity based on infringement of intellectual property rights or otherwise. As a condition to exercising the rights and licenses granted hereunder, each Recipient hereby assumes sole responsibility to secure any other intellectual property rights needed, if any. For example, if a third party patent license is required to allow Recipient to Distribute the Program, it is Recipient's responsibility to acquire that license before distributing the Program.
+d) Each Contributor represents that to its knowledge it has sufficient copyright rights in its Contribution, if any, to grant the copyright license set forth in this Agreement.
+e) Notwithstanding the terms of any Secondary License, no Contributor makes additional grants to any Recipient (other than those set forth in this Agreement) as a result of such Recipient's receipt of the Program under the terms of a Secondary License (if permitted under the terms of Section 3).
+3. REQUIREMENTS
+3.1 If a Contributor Distributes the Program in any form, then:
+
+a) the Program must also be made available as Source Code, in accordance with section 3.2, and the Contributor must accompany the Program with a statement that the Source Code for the Program is available under this Agreement, and informs Recipients how to obtain it in a reasonable manner on or through a medium customarily used for software exchange; and
+b) the Contributor may Distribute the Program under a license different than this Agreement, provided that such license:
+i) effectively disclaims on behalf of all other Contributors all warranties and conditions, express and implied, including warranties or conditions of title and non-infringement, and implied warranties or conditions of merchantability and fitness for a particular purpose;
+ii) effectively excludes on behalf of all other Contributors all liability for damages, including direct, indirect, special, incidental and consequential damages, such as lost profits;
+iii) does not attempt to limit or alter the recipients' rights in the Source Code under section 3.2; and
+iv) requires any subsequent distribution of the Program by any party to be under a license that satisfies the requirements of this section 3.
+3.2 When the Program is Distributed as Source Code:
+
+a) it must be made available under this Agreement, or if the Program (i) is combined with other material in a separate file or files made available under a Secondary License, and (ii) the initial Contributor attached to the Source Code the notice described in Exhibit A of this Agreement, then the Program may be made available under the terms of such Secondary Licenses, and
+b) a copy of this Agreement must be included with each copy of the Program.
+3.3 Contributors may not remove or alter any copyright, patent, trademark, attribution notices, disclaimers of warranty, or limitations of liability (‘notices’) contained within the Program from any copy of the Program which they Distribute, provided that Contributors may add their own appropriate notices.
+
+4. COMMERCIAL DISTRIBUTION
+Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors. Therefore, if a Contributor includes the Program in a commercial product offering, such Contributor (“Commercial Contributor”) hereby agrees to defend and indemnify every other Contributor (“Indemnified Contributor”) against any losses, damages and costs (collectively “Losses”) arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Contributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must: a) promptly notify the Commercial Contributor in writing of such claim, and b) allow the Commercial Contributor to control, and cooperate with the Commercial Contributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense.
+
+For example, a Contributor might include the Program in a commercial product offering, Product X. That Contributor is then a Commercial Contributor. If that Commercial Contributor then makes performance claims, or offers warranties related to Product X, those performance claims and warranties are such Commercial Contributor's responsibility alone. Under this section, the Commercial Contributor would have to defend claims against the other Contributors related to those performance claims and warranties, and if a court requires any other Contributor to pay any damages as a result, the Commercial Contributor must pay those damages.
+
+5. NO WARRANTY
+EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, AND TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE PROGRAM IS PROVIDED ON AN “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each Recipient is solely responsible for determining the appropriateness of using and distributing the Program and assumes all risks associated with its exercise of rights under this Agreement, including but not limited to the risks and costs of program errors, compliance with applicable laws, damage to or loss of data, programs or equipment, and unavailability or interruption of operations.
+
+6. DISCLAIMER OF LIABILITY
+EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, AND TO THE EXTENT PERMITTED BY APPLICABLE LAW, NEITHER RECIPIENT NOR ANY CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+7. GENERAL
+If any provision of this Agreement is invalid or unenforceable under applicable law, it shall not affect the validity or enforceability of the remainder of the terms of this Agreement, and without further action by the parties hereto, such provision shall be reformed to the minimum extent necessary to make such provision valid and enforceable.
+
+If Recipient institutes patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Program itself (excluding combinations of the Program with other software or hardware) infringes such Recipient's patent(s), then such Recipient's rights granted under Section 2(b) shall terminate as of the date such litigation is filed.
+
+All Recipient's rights under this Agreement shall terminate if it fails to comply with any of the material terms or conditions of this Agreement and does not cure such failure in a reasonable period of time after becoming aware of such noncompliance. If all Recipient's rights under this Agreement terminate, Recipient agrees to cease use and distribution of the Program as soon as reasonably practicable. However, Recipient's obligations under this Agreement and any licenses granted by Recipient relating to the Program shall continue and survive.
+
+Everyone is permitted to copy and distribute copies of this Agreement, but in order to avoid inconsistency the Agreement is copyrighted and may only be modified in the following manner. The Agreement Steward reserves the right to publish new versions (including revisions) of this Agreement from time to time. No one other than the Agreement Steward has the right to modify this Agreement. The Eclipse Foundation is the initial Agreement Steward. The Eclipse Foundation may assign the responsibility to serve as the Agreement Steward to a suitable separate entity. Each new version of the Agreement will be given a distinguishing version number. The Program (including Contributions) may always be Distributed subject to the version of the Agreement under which it was received. In addition, after a new version of the Agreement is published, Contributor may elect to Distribute the Program (including its Contributions) under the new version.
+
+Except as expressly stated in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to the intellectual property of any Contributor under this Agreement, whether expressly, by implication, estoppel or otherwise. All rights in the Program not expressly granted under this Agreement are reserved. Nothing in this Agreement is intended to be enforceable by any entity that is not a Contributor or Recipient. No third-party beneficiary rights are created under this Agreement.
+
+Exhibit A – Form of Secondary Licenses Notice
+“This Source Code may also be made available under the following Secondary Licenses when the conditions for such availability set forth in the Eclipse Public License, v. 2.0 are satisfied: {name license(s), version(s), and exceptions or additional permissions here}.”
+
+Simply including a copy of this Agreement, including this Exhibit A is not sufficient to license the Source Code under Secondary Licenses.
+
+If it is not possible or desirable to put the notice in a particular file, then You may include the notice in a location (such as a LICENSE file in a relevant directory) where a recipient would be likely to look for such a notice.
+
+You may add additional accurate notices of copyright ownership.
+
+
+
+--- LGPL-3.0-only ---
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+Full license text: https://www.gnu.org/licenses/gpl-3.0.html
+
+
+--- CC-BY-4.0 ---
+
+This work is licensed under the Creative Commons Attribution 4.0
+International License. To view a copy of this license, visit
+http://creativecommons.org/licenses/by/4.0/ or send a letter to Creative
+Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+You are free to:
+- Share: copy and redistribute the material in any medium or format
+- Adapt: remix, transform, and build upon the material for any purpose,
+  even commercially
+
+Under the following terms:
+- Attribution: You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made.
+
+Full license text: https://creativecommons.org/licenses/by/4.0/legalcode
+
